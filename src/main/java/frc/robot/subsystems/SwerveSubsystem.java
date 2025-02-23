@@ -62,10 +62,10 @@ public class SwerveSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
 
       System.out.println("Module positions: "+
-        Math.round(swerveDrive.getModules()[0].getAbsolutePosition()) + " ___" +
-        Math.round(swerveDrive.getModules()[1].getAbsolutePosition()) + " ___" +
-        Math.round(swerveDrive.getModules()[2].getAbsolutePosition()) + " ___" +
-        Math.round(swerveDrive.getModules()[3].getAbsolutePosition())
+        "FL: " + Math.round(swerveDrive.getModules()[0].getAbsolutePosition()) + "   " +
+        "FR: " + Math.round(swerveDrive.getModules()[1].getAbsolutePosition()) + "   " +
+        "BL: " + Math.round(swerveDrive.getModules()[2].getAbsolutePosition()) + "   " +
+        "BR: " + Math.round(swerveDrive.getModules()[3].getAbsolutePosition())
 
       );
 

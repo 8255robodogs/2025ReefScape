@@ -13,18 +13,22 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class SparkMaxMotor extends SubsystemBase{
     
     SparkMax motor;
+    boolean inverted = false;
 
-    public SparkMaxMotor(int canID){
+    public SparkMaxMotor(int canID, boolean inverted){
         motor = new SparkMax(canID,MotorType.kBrushless);
-        
+        this.inverted = inverted;
     }
 
     public void setSpeed(double speed){
+        if (inverted) speed = speed *-1;
         motor.set(speed);
     }
 
     public double getSpeed(){
-        return motor.get();
+        double speed= motor.get();
+        if (inverted) speed = speed *-1;
+        return speed;
     }
 
 }

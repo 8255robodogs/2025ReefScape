@@ -36,7 +36,7 @@ public class Robot extends TimedRobot {
   private PneumaticsControlModule pcm;
   private Compressor pcmCompressor;
 
-  private double giraffeNeckPosition;
+  private double giraffeNeckPosition = 0;
   private VictorSPXMotorSubsystem coralMotor;
 
   /**
@@ -47,7 +47,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    giraffeNeckMotor = new SparkMaxMotor(9);
+    giraffeNeckMotor = new SparkMaxMotor(9,true); 
     pcm = new PneumaticsControlModule(21);
     pcm.clearAllStickyFaults();
     coralMotor = new VictorSPXMotorSubsystem(14, "coralMotor", false);
@@ -109,6 +109,8 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 
+    giraffeNeckPosition = 0;
+
   }
 
   /** This function is called periodically during operator control. */
@@ -118,13 +120,15 @@ public class Robot extends TimedRobot {
 
     //giraffe neck
     if(xbox0.getAButton() & !xbox0.getYButton()){
-      giraffeNeckMotor.setSpeed(0.1);
+      giraffeNeckMotor.setSpeed(-0.3);
     }else if(!xbox0.getAButton() & xbox0.getYButton()){
-      giraffeNeckMotor.setSpeed(-0.1);
+      giraffeNeckMotor.setSpeed(0.1);
     }else{
       giraffeNeckMotor.setSpeed(0);
     }
     giraffeNeckPosition += giraffeNeckMotor.getSpeed();
+    System.out.println("giraffeNeckPosition: " + giraffeNeckPosition);
+
     
     //coral motor
     if(xbox0.getRightBumperButton() && !xbox0.getLeftBumperButton()){
@@ -144,6 +148,9 @@ public class Robot extends TimedRobot {
     if(xbox0.getXButtonPressed()){
       cagePneumatic.TogglePneumatic();
     }
+
+    //algae motor
+
     
 
 
