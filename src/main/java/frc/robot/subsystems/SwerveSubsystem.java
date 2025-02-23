@@ -8,6 +8,8 @@ import java.io.Console;
 import java.io.File;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.swerve.SwerveModule;
+
 import edu.wpi.first.wpilibj.Filesystem;
 import swervelib.parser.SwerveParser;
 import swervelib.SwerveDrive;
@@ -58,6 +60,16 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+
+      System.out.println("Module positions: "+
+        Math.round(swerveDrive.getModules()[0].getAbsolutePosition()) + " ___" +
+        Math.round(swerveDrive.getModules()[1].getAbsolutePosition()) + " ___" +
+        Math.round(swerveDrive.getModules()[2].getAbsolutePosition()) + " ___" +
+        Math.round(swerveDrive.getModules()[3].getAbsolutePosition())
+
+      );
+
+
   }
 
   @Override

@@ -4,9 +4,20 @@
 
 package frc.robot;
 
+import org.opencv.features2d.AgastFeatureDetector;
+
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.PneumaticsControlModule;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.PneumaticSubsystem;
+import frc.robot.subsystems.SparkMaxMotor;
+import frc.robot.subsystems.VictorSPXMotorSubsystem;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -18,6 +29,16 @@ public class Robot extends TimedRobot {
 
   private final RobotContainer m_robotContainer;
 
+  XboxController xbox0 = new XboxController(0);
+  private SparkMaxMotor giraffeNeckMotor;
+  private PneumaticSubsystem cagePneumatic;
+  private PneumaticSubsystem algaePneumatic;
+  private PneumaticsControlModule pcm;
+  private Compressor pcmCompressor;
+
+  private double giraffeNeckPosition;
+  private VictorSPXMotorSubsystem coralMotor;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -26,6 +47,14 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    giraffeNeckMotor = new SparkMaxMotor(9);
+    pcm = new PneumaticsControlModule(21);
+    pcm.clearAllStickyFaults();
+    coralMotor = new VictorSPXMotorSubsystem(14, "coralMotor", false);
+    
+    cagePneumatic = new PneumaticSubsystem(21, 2, 3, true);
+    algaePneumatic = new PneumaticSubsystem(21,4, 5, false);
+
   }
 
   /**
@@ -60,6 +89,10 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
+
+    
+
+
   }
 
   /** This function is called periodically during autonomous. */
@@ -75,11 +108,46 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
   }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+
+
+    //giraffe neck
+    if(xbox0.getAButton() & !xbox0.getYButton()){
+      giraffeNeckMotor.setSpeed(0.1);
+    }else if(!xbox0.getAButton() & xbox0.getYButton()){
+      giraffeNeckMotor.setSpeed(-0.1);
+    }else{
+      giraffeNeckMotor.setSpeed(0);
+    }
+    giraffeNeckPosition += giraffeNeckMotor.getSpeed();
+    
+    //coral motor
+    if(xbox0.getRightBumperButton() && !xbox0.getLeftBumperButton()){
+      coralMotor.SetSpeed(0.3);
+    }else if(!xbox0.getRightBumperButton() && xbox0.getLeftBumperButton()){
+      coralMotor.SetSpeed(-0.3);
+    }else{
+      coralMotor.SetSpeed(0);
+    }
+
+
+
+    //algae piston
+    if(xbox0.getBButtonPressed()){
+      algaePneumatic.TogglePneumatic();
+    }
+    if(xbox0.getXButtonPressed()){
+      cagePneumatic.TogglePneumatic();
+    }
+    
+
+
+  }
 
   @Override
   public void testInit() {
