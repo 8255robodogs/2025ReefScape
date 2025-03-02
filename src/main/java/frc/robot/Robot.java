@@ -6,6 +6,10 @@ package frc.robot;
 
 import org.opencv.features2d.AgastFeatureDetector;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsControlModule;
@@ -19,7 +23,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.PneumaticSubsystem;
 import frc.robot.subsystems.SparkMaxMotor;
+import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VictorSPXMotorSubsystem;
+import swervelib.SwerveDrive;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -30,6 +36,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+  private SwerveSubsystem driveBase = new SwerveSubsystem();
 
   XboxController xbox0 = new XboxController(0);
   XboxController xbox1 = new XboxController(1);
@@ -42,6 +49,12 @@ public class Robot extends TimedRobot {
   
 
   SendableChooser<Command> autoSelector = new SendableChooser<Command>();
+  
+  SendableChooser<Pose2d> startingPositionSelector = new SendableChooser<>();
+  private Pose2d blueLeft = new Pose2d(7.386,7.275, new Rotation2d(0));
+  private Pose2d blueMiddle = new Pose2d(7.788,6.142, new Rotation2d(0));
+  private Pose2d blueRight = new Pose2d(7.788,5.069, new Rotation2d(0));
+
 
 
   /**
@@ -52,7 +65,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    giraffeNeckMotor = new SparkMaxMotor(9,true); 
+    //giraffeNeckMotor = new SparkMaxMotor(9,true); 
     pcm = new PneumaticsControlModule(21);
     pcm.clearAllStickyFaults();
     coralMotor = new VictorSPXMotorSubsystem(14, "coralMotor", false);
@@ -60,10 +73,15 @@ public class Robot extends TimedRobot {
     cagePneumatic = new PneumaticSubsystem(21, 2, 3, true);
     algaePneumatic = new PneumaticSubsystem(21,4, 5, false);
 
+    autoSelector.setDefaultOption("Do Nothing", null);
+    autoSelector.addOption("testAuto", new PathPlannerAuto("Test Auto", isAutonomous()) );
     SmartDashboard.putData("auto selector", autoSelector);
-        autoSelector.setDefaultOption("Do Nothing", null);
-        //autoSelector.addOption("Auto Shoot And Stay Still", new AutoShootAndStayStill(swerveSys, launcherMotorA,launcherMotorB,lifterGate,groundPickupMotor,LauncherFeeder));
         
+    startingPositionSelector.setDefaultOption("blueMiddle", blueMiddle);
+    startingPositionSelector.addOption("blueLeft",blueLeft);
+    startingPositionSelector.addOption("blueMiddle", blueMiddle);
+    startingPositionSelector.addOption("blueRight", blueRight);
+    SmartDashboard.putData(startingPositionSelector);
 
   }
 
@@ -93,6 +111,8 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
+
+    //set up the autonomous command
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
@@ -134,7 +154,7 @@ public class Robot extends TimedRobot {
 
 
 
-
+/*
     if(xbox1.getAButton() & !xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() > 0 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck down
       giraffeNeckMotor.setSpeed(-0.35);
@@ -144,15 +164,12 @@ public class Robot extends TimedRobot {
     }else{
       giraffeNeckMotor.setSpeed(0);
     }
-    
+    */
+
     if(xbox1.getLeftStickButtonPressed()){
       giraffeNeckMotor.resetEncoder();
     }
 
-    System.out.println("Encoder: "+giraffeNeckMotor.getEncoderDegrees());
-    
-
-    
     //coral motor
     if(xbox1.getRightBumperButton() && !xbox1.getLeftBumperButton()){
       coralMotor.SetSpeed(0.3);

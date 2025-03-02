@@ -117,6 +117,13 @@ public class SwerveSubsystem extends SubsystemBase {
     swerveDrive.resetOdometry(initialHolonomicPose);
   }
 
+  /** Set the elevator's desired height to the pickup height */
+  public Command cmdResetOdometry(Pose2d initialHolonomicPose) {
+    return this.runOnce(() -> swerveDrive.resetOdometry(initialHolonomicPose));
+}
+
+
+
 
    /**
    * Gets the current velocity (x, y and omega) of the robot
@@ -284,7 +291,9 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
 
-
+  public void setPose(Pose2d pose2d){
+    swerveDrive.resetOdometry(pose2d);
+  }
 
 
 
