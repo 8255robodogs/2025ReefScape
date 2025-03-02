@@ -4,8 +4,10 @@ package frc.robot.subsystems;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -23,10 +25,12 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
 
     //PID settings
     private PIDController pid;
-    private final double p = 0.5;
-    private final double i = 0.001;
-    private final double d = 0.1;
-    private final double pidErrorTolerance = 0.05;
+    private final double p = 0.1;
+    private final double i = 0.3;
+    private final double d = 0.01;
+    private final double pidErrorTolerance = 0.1;
+    private final double minAutoMotorSpeed = -0.6;
+    private final double maxAutoMotorSpeed = 0.3;
 
     //Elevator Height Presets
     private final double heightForTopPole = 59.9;
@@ -52,13 +56,36 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
         return motor.getEncoder().getPosition() *-1;
     }
 
+    private void resetEncoder(){
+        motor.getEncoder().setPosition(0);
+    }
+
 
 
     @Override
     public void periodic(){
+
+        System.out.println("height: " + getHeight()+ " ...... " + "setPoint: "+ pid.getSetpoint());
+
+
         if(xbox1.getLeftTriggerAxis() < 0.5){
-            //normal operation
-            setMotorSpeed(pid.calculate(getHeight()));
+            //we are in automatic operation
+            double pidResult = pid.calculate(getHeight());
+            double pidResultClamped = MathUtil.clamp(pidResult,minAutoMotorSpeed,maxAutoMotorSpeed);
+            setMotorSpeed(pidResultClamped);
+            if(xbox1.getAButtonPressed()){
+                pid.setSetpoint(heightForPickup);
+            }
+            if(xbox1.getXButtonPressed()){
+                pid.setSetpoint(heightForBottomPole);
+            }
+            if(xbox1.getBButtonPressed()){
+                pid.setSetpoint(heightForMiddlePole);
+            }
+            if(xbox1.getYButtonPressed()){
+                pid.setSetpoint(heightForTopPole);
+            }
+
         }else{
             //we are in manual mode
             if(xbox1.getAButton()){
@@ -68,7 +95,20 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
             }else{
                 setMotorSpeed(0);
             }
+
+            //make out current height the setpoint
+            pid.setSetpoint(getHeight());
+
+            //zeroing
+            if(xbox1.getRightStickButtonPressed()){
+                resetEncoder();
+            }
+
         }
+
+        SmartDashboard.putNumber(("NeckHeight"), getHeight());
+        SmartDashboard.putNumber("NeckSetpoint",pid.getSetpoint());
+
     }
 
     /** Set the elevator's desired height to the Top Pole's height */
@@ -89,6 +129,11 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     /** Set the elevator's desired height to the pickup height */
     public Command goToPickupHeight() {
         return this.runOnce(() -> pid.setSetpoint(heightForPickup));
+    }
+
+    /** Reset the encoder to 0 */
+    public Command ZeroNeckMotor() {
+        return this.runOnce(() -> resetEncoder());
     }
 
     

@@ -24,6 +24,7 @@ import swervelib.SwerveDrive;
 import swervelib.SwerveInputStream;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -39,7 +40,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
 
   public SwerveSubsystem() {
-
     try{
       swerveDrive = new SwerveParser(swerveJsonDirectory).createSwerveDrive(4.5);
     }catch(Exception e){
@@ -48,41 +48,6 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
  
-  public Command exampleMethodCommand() {
-    return runOnce(
-        () -> {
-
-        });
-  }
-
-  
-  public boolean exampleCondition() {
-    // Query some boolean state, such as a digital sensor.
-    return false;
-  }
-
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-
-    /* 
-      System.out.println("Module positions: "+
-        "FL: " + Math.round(swerveDrive.getModules()[0].getAbsolutePosition()) + "   " +
-        "FR: " + Math.round(swerveDrive.getModules()[1].getAbsolutePosition()) + "   " +
-        "BL: " + Math.round(swerveDrive.getModules()[2].getAbsolutePosition()) + "   " +
-        "BR: " + Math.round(swerveDrive.getModules()[3].getAbsolutePosition())
-
-      );
-*/
-
-  }
-
-  @Override
-  public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
-  }
-
-
   public SwerveDrive getSwerveDrive() {
     return swerveDrive;
   }
@@ -115,6 +80,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public void resetOdometry(Pose2d initialHolonomicPose)
   {
     swerveDrive.resetOdometry(initialHolonomicPose);
+    
   }
 
   /** Set the elevator's desired height to the pickup height */
@@ -163,6 +129,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public void zeroGyro()
   {
     swerveDrive.zeroGyro();
+      
   }
 
   /**
@@ -176,7 +143,7 @@ public class SwerveSubsystem extends SubsystemBase {
     {
       zeroGyro();
       //Set the pose 180 degrees
-      resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
+      //resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
     } else
     {
       zeroGyro();
@@ -293,6 +260,11 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void setPose(Pose2d pose2d){
     swerveDrive.resetOdometry(pose2d);
+  }
+
+  public Command SetPose(Pose2d pose){
+    return this.runOnce(() -> setPose(pose));
+
   }
 
 

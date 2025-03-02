@@ -8,6 +8,7 @@ import org.opencv.features2d.AgastFeatureDetector;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.auto.programs.AutoReefscapeTest;
 import frc.robot.subsystems.PneumaticSubsystem;
 import frc.robot.subsystems.SparkMaxMotor;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -36,24 +38,21 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-  private SwerveSubsystem driveBase = new SwerveSubsystem();
 
   XboxController xbox0 = new XboxController(0);
   XboxController xbox1 = new XboxController(1);
-  private SparkMaxMotor giraffeNeckMotor;
   private PneumaticSubsystem cagePneumatic;
   private PneumaticSubsystem algaePneumatic;
   private PneumaticsControlModule pcm;
 
   private VictorSPXMotorSubsystem coralMotor;
-  
+  private SparkMaxMotor giraffeNeckMotor;
 
-  SendableChooser<Command> autoSelector = new SendableChooser<Command>();
+  private final double heightForTopPole = 59.9;
+    private final double heightForMiddlePole = 25;
+    private final double heightForBottomPole = 10;
+    private final double heightForPickup = 0;
   
-  SendableChooser<Pose2d> startingPositionSelector = new SendableChooser<>();
-  private Pose2d blueLeft = new Pose2d(7.386,7.275, new Rotation2d(0));
-  private Pose2d blueMiddle = new Pose2d(7.788,6.142, new Rotation2d(0));
-  private Pose2d blueRight = new Pose2d(7.788,5.069, new Rotation2d(0));
 
 
 
@@ -65,7 +64,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    //giraffeNeckMotor = new SparkMaxMotor(9,true); 
+    giraffeNeckMotor = new SparkMaxMotor(9,true); 
     pcm = new PneumaticsControlModule(21);
     pcm.clearAllStickyFaults();
     coralMotor = new VictorSPXMotorSubsystem(14, "coralMotor", false);
@@ -73,15 +72,9 @@ public class Robot extends TimedRobot {
     cagePneumatic = new PneumaticSubsystem(21, 2, 3, true);
     algaePneumatic = new PneumaticSubsystem(21,4, 5, false);
 
-    autoSelector.setDefaultOption("Do Nothing", null);
-    autoSelector.addOption("testAuto", new PathPlannerAuto("Test Auto", isAutonomous()) );
-    SmartDashboard.putData("auto selector", autoSelector);
+    
         
-    startingPositionSelector.setDefaultOption("blueMiddle", blueMiddle);
-    startingPositionSelector.addOption("blueLeft",blueLeft);
-    startingPositionSelector.addOption("blueMiddle", blueMiddle);
-    startingPositionSelector.addOption("blueRight", blueRight);
-    SmartDashboard.putData(startingPositionSelector);
+    
 
   }
 
@@ -147,50 +140,60 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
 
-    //giraffe neck
-    //top positoion 59.9
-    //middle rack 25
 
-
-
-
-/*
     if(xbox1.getAButton() & !xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() > 0 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck down
       giraffeNeckMotor.setSpeed(-0.35);
     }else if(!xbox1.getAButton() & xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() < 59.9 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck up`
       giraffeNeckMotor.setSpeed(0.32);
-    }else{
+    }else if(xbox1.getXButton()){
+      if(giraffeNeckMotor.getEncoderDegrees()< heightForBottomPole){
+        giraffeNeckMotor.setSpeed((0.32));
+      }else{
+        giraffeNeckMotor.setSpeed(-0.32);
+      }
+    }else if(xbox1.getBButton()){
+      if(giraffeNeckMotor.getEncoderDegrees()< heightForMiddlePole){
+        giraffeNeckMotor.setSpeed((0.32));
+      }else{
+        giraffeNeckMotor.setSpeed(-0.32);
+      }
+    }
+    else{
       giraffeNeckMotor.setSpeed(0);
     }
-    */
 
-    if(xbox1.getLeftStickButtonPressed()){
+    if(xbox1.getRightStickButtonPressed()){
       giraffeNeckMotor.resetEncoder();
     }
+    
+
+    
 
     //coral motor
     if(xbox1.getRightBumperButton() && !xbox1.getLeftBumperButton()){
       coralMotor.SetSpeed(0.3);
     }else if(!xbox1.getRightBumperButton() && xbox1.getLeftBumperButton()){
       coralMotor.SetSpeed(-0.3);
-    }else{
+    }else if(xbox1.getRightTriggerAxis() > 0.5){
+      coralMotor.SetSpeed(1);
+    }
+    else{
       coralMotor.SetSpeed(0);
     }
 
 
 
-    //algae piston
-    if(xbox1.getBButtonPressed()){
-      //algaePneumatic.TogglePneumatic();
+    //cage pin piston
+    if(xbox1.getBackButtonPressed()){
+      algaePneumatic.TogglePneumatic();
     }
     
 
-    //algae motor
 
-    //cage piston
-    if(xbox1.getXButtonPressed()){
+    //cage liftpiston
+    if(xbox1.getStartButtonPressed()){
       cagePneumatic.TogglePneumatic();
     }
 

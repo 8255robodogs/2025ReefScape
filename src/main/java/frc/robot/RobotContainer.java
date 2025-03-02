@@ -2,13 +2,19 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
+import frc.robot.commands.auto.programs.AutoReefscapeTest;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.ReefscapeElevatorSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -20,12 +26,21 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
-  private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
+  //private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
 
   //declare the controller
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController m_operatorController = new CommandXboxController(OperatorConstants.kOperatorControllerPort);
   
+  SendableChooser<Command> autoSelector = new SendableChooser<Command>();
+  
+  SendableChooser<Pose2d> startingPositionSelector = new SendableChooser<>();
+    private Pose2d blueLeft = new Pose2d(7.386,7.275, new Rotation2d(0));
+    private Pose2d blueMiddle = new Pose2d(7.788,6.142, new Rotation2d(0));
+    private Pose2d blueRight = new Pose2d(7.788,5.069, new Rotation2d(0));
+
+
+
 
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
       drivebase.getSwerveDrive(),
@@ -47,9 +62,10 @@ public class RobotContainer {
 
   
   public RobotContainer() {
+    drivebase.setupPathPlanner();
     //registers controls
     configureBindings();
-
+    configureAutos();
     //registers the names of commands so they can be found in Path Planner
     //NamedCommands.registerCommand("goToTopPoleHeight", Commands.runOnce(elevator::goToTopPoleHeight));
     //NamedCommands.registerCommand("goToMiddlePoleHeight", Commands.runOnce(elevator::goToMiddlePoleHeight));
@@ -62,21 +78,25 @@ public class RobotContainer {
     //driver controller
     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     m_driverController.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-    m_driverController.y().onTrue(drivebase.driveToDistanceCommand(1.0, 0.2));
     m_driverController.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     
 
-    //operator controller
-    //Neck auto mode
-    //m_operatorController.a().onTrue(Commands.runOnce(elevator::goToPickupHeight));
-    //m_operatorController.x().onTrue(Commands.runOnce(elevator::goToBottomPoleHeight));
-    //m_operatorController.b().onTrue(Commands.runOnce(elevator::goToMiddlePoleHeight));
-    //m_operatorController.y().onTrue(Commands.runOnce(elevator::goToTopPoleHeight));
-    
     
 
   }
 
+  private void configureAutos(){
+    autoSelector.setDefaultOption("Do Nothing", null);
+    autoSelector.addOption("AutoReefscapeTest", new AutoReefscapeTest(drivebase) );
+    SmartDashboard.putData("auto selector", autoSelector);
+
+    startingPositionSelector.setDefaultOption("blueMiddle", blueMiddle);
+    startingPositionSelector.addOption("blueLeft",blueLeft);
+    startingPositionSelector.addOption("blueMiddle", blueMiddle);
+    startingPositionSelector.addOption("blueRight", blueRight);
+    SmartDashboard.putData(startingPositionSelector);
+    
+  }
 
 
   /**
@@ -84,8 +104,13 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    
+    return AutoBuilder.buildAuto("Test Auto");
+    
+    
+    //return autoSelector.getSelected();
   }
 }
