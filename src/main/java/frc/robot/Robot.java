@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.PneumaticSubsystem;
@@ -30,14 +32,17 @@ public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
 
   XboxController xbox0 = new XboxController(0);
+  XboxController xbox1 = new XboxController(1);
   private SparkMaxMotor giraffeNeckMotor;
   private PneumaticSubsystem cagePneumatic;
   private PneumaticSubsystem algaePneumatic;
   private PneumaticsControlModule pcm;
-  private Compressor pcmCompressor;
 
-  private double giraffeNeckPosition = 0;
   private VictorSPXMotorSubsystem coralMotor;
+  
+
+  SendableChooser<Command> autoSelector = new SendableChooser<Command>();
+
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -54,6 +59,11 @@ public class Robot extends TimedRobot {
     
     cagePneumatic = new PneumaticSubsystem(21, 2, 3, true);
     algaePneumatic = new PneumaticSubsystem(21,4, 5, false);
+
+    SmartDashboard.putData("auto selector", autoSelector);
+        autoSelector.setDefaultOption("Do Nothing", null);
+        //autoSelector.addOption("Auto Shoot And Stay Still", new AutoShootAndStayStill(swerveSys, launcherMotorA,launcherMotorB,lifterGate,groundPickupMotor,LauncherFeeder));
+        
 
   }
 
@@ -109,7 +119,6 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 
-    giraffeNeckPosition = 0;
 
   }
 
@@ -119,21 +128,35 @@ public class Robot extends TimedRobot {
 
 
     //giraffe neck
-    if(xbox0.getAButton() & !xbox0.getYButton()){
-      giraffeNeckMotor.setSpeed(-0.3);
-    }else if(!xbox0.getAButton() & xbox0.getYButton()){
-      giraffeNeckMotor.setSpeed(0.1);
+    //top positoion 59.9
+    //middle rack 25
+
+
+
+
+
+    if(xbox1.getAButton() & !xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() > 0 || xbox1.getLeftTriggerAxis() > 0.1)){
+      //neck down
+      giraffeNeckMotor.setSpeed(-0.35);
+    }else if(!xbox1.getAButton() & xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() < 59.9 || xbox1.getLeftTriggerAxis() > 0.1)){
+      //neck up`
+      giraffeNeckMotor.setSpeed(0.32);
     }else{
       giraffeNeckMotor.setSpeed(0);
     }
-    giraffeNeckPosition += giraffeNeckMotor.getSpeed();
-    System.out.println("giraffeNeckPosition: " + giraffeNeckPosition);
+    
+    if(xbox1.getLeftStickButtonPressed()){
+      giraffeNeckMotor.resetEncoder();
+    }
+
+    System.out.println("Encoder: "+giraffeNeckMotor.getEncoderDegrees());
+    
 
     
     //coral motor
-    if(xbox0.getRightBumperButton() && !xbox0.getLeftBumperButton()){
+    if(xbox1.getRightBumperButton() && !xbox1.getLeftBumperButton()){
       coralMotor.SetSpeed(0.3);
-    }else if(!xbox0.getRightBumperButton() && xbox0.getLeftBumperButton()){
+    }else if(!xbox1.getRightBumperButton() && xbox1.getLeftBumperButton()){
       coralMotor.SetSpeed(-0.3);
     }else{
       coralMotor.SetSpeed(0);
@@ -142,16 +165,17 @@ public class Robot extends TimedRobot {
 
 
     //algae piston
-    if(xbox0.getBButtonPressed()){
-      algaePneumatic.TogglePneumatic();
+    if(xbox1.getBButtonPressed()){
+      //algaePneumatic.TogglePneumatic();
     }
-    if(xbox0.getXButtonPressed()){
-      cagePneumatic.TogglePneumatic();
-    }
+    
 
     //algae motor
 
-    
+    //cage piston
+    if(xbox1.getXButtonPressed()){
+      cagePneumatic.TogglePneumatic();
+    }
 
 
   }

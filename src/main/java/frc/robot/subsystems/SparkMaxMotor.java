@@ -31,4 +31,17 @@ public class SparkMaxMotor extends SubsystemBase{
         return speed;
     }
 
+
+
+
+    public double getEncoderDegrees(){
+        return motor.getEncoder().getPosition() * -1;
+    }
+
+    public void resetEncoder(){
+        motor.getEncoder().setPosition(0);
+    }
+
+    
+
 }
