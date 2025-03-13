@@ -2,17 +2,22 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
+import frc.robot.commands.CmdSpinMotorPositive;
 import frc.robot.commands.auto.programs.AutoReefscapeTest;
+import frc.robot.commands.auto.programs.Forward;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.ReefscapeElevatorSubsystem;
+import frc.robot.subsystems.SparkMaxMotor;
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,6 +31,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
+  private final SparkMaxMotor coralFeeder = new SparkMaxMotor(14, false);
   //private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
 
   //declare the controller
@@ -36,8 +42,9 @@ public class RobotContainer {
   
   SendableChooser<Pose2d> startingPositionSelector = new SendableChooser<>();
     private Pose2d blueLeft = new Pose2d(7.386,7.275, new Rotation2d(0));
-    private Pose2d blueMiddle = new Pose2d(7.788,6.142, new Rotation2d(0));
+    private Pose2d blueMiddle = new Pose2d(7.120,5.66, new Rotation2d(0));
     private Pose2d blueRight = new Pose2d(7.788,5.069, new Rotation2d(0));
+    
 
 
 
@@ -86,15 +93,18 @@ public class RobotContainer {
   }
 
   private void configureAutos(){
+    SmartDashboard.putData("auto selector", autoSelector);
     autoSelector.setDefaultOption("Do Nothing", null);
     autoSelector.addOption("AutoReefscapeTest", new AutoReefscapeTest(drivebase) );
-    SmartDashboard.putData("auto selector", autoSelector);
+    autoSelector.addOption("Forward", new Forward(drivebase) );
+    
 
+    SmartDashboard.putData(startingPositionSelector);
     startingPositionSelector.setDefaultOption("blueMiddle", blueMiddle);
     startingPositionSelector.addOption("blueLeft",blueLeft);
     startingPositionSelector.addOption("blueMiddle", blueMiddle);
     startingPositionSelector.addOption("blueRight", blueRight);
-    SmartDashboard.putData(startingPositionSelector);
+    
     
   }
 
@@ -109,8 +119,28 @@ public class RobotContainer {
     // An example command will be run in autonomous
     
     return AutoBuilder.buildAuto("Test Auto");
-    
+/*
+    Pose2d startPosition = new Pose2d(
+      new Translation2d(0,0),
+      new Rotation2d(10)
+    );
+
+    Pose2d destination1 = new Pose2d(
+      new Translation2d(0.3,0),
+      new Rotation2d(10)
+    );
+    //3.03 1.35
+
+    PathConstraints constraints = new PathConstraints(1,0.5,0.1,0.1,0.1);
+
+    /*
+    return AutoBuilder.resetOdom(startPosition)
+    .andThen(AutoBuilder.pathfindToPose(destination1,constraints))
+    .andThen(new CmdSpinMotorPositive(1, coralFeeder))
+    ;
+    */
     
     //return autoSelector.getSelected();
+    
   }
 }

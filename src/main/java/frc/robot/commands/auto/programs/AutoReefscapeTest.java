@@ -28,7 +28,7 @@ import frc.robot.subsystems.VictorSPXMotorSubsystem;
 
 public class AutoReefscapeTest extends SequentialCommandGroup{
 
-    private Pose2d blueMiddle = new Pose2d(7.788,6.142, new Rotation2d(180));
+    private Pose2d blueMiddle = new Pose2d(7.139,3.964, new Rotation2d(180));
 
 
     public AutoReefscapeTest(SwerveSubsystem swerve){
@@ -58,3 +58,4 @@ public class AutoReefscapeTest extends SequentialCommandGroup{
 
 
 }
+

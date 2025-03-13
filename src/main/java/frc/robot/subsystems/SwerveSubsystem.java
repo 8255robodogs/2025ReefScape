@@ -19,6 +19,7 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.parser.SwerveParser;
 import swervelib.SwerveDrive;
 import swervelib.SwerveInputStream;
@@ -298,7 +299,11 @@ public class SwerveSubsystem extends SubsystemBase {
                      distanceInMeters);
   }
 
-
+  public void periodic(){
+    SmartDashboard.putString("Pose X Y", swerveDrive.getPose().getX() + " / " + swerveDrive.getPose().getY());
+    System.out.println("Pose X Y" + swerveDrive.getPose().getX() + " / " + swerveDrive.getPose().getY());
+    //backward is +X  right is +Y
+  }
 
 
 

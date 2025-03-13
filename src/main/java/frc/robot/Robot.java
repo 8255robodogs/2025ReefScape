@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsControlModule;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -43,14 +44,17 @@ public class Robot extends TimedRobot {
   XboxController xbox1 = new XboxController(1);
   private PneumaticSubsystem cagePneumatic;
   private PneumaticSubsystem algaePneumatic;
+  private Solenoid algaeRemoverPneumatic;
   private PneumaticsControlModule pcm;
 
   private VictorSPXMotorSubsystem coralMotor;
+  private VictorSPXMotorSubsystem harvestorMotor;
   private SparkMaxMotor giraffeNeckMotor;
+  
 
-  private final double heightForTopPole = 59.9;
-    private final double heightForMiddlePole = 25;
-    private final double heightForBottomPole = 10;
+  private final double heightForTopPole = 180;
+    private final double heightForMiddlePole = 79;
+    private final double heightForBottomPole = 25.5;
     private final double heightForPickup = 0;
   
 
@@ -68,11 +72,12 @@ public class Robot extends TimedRobot {
     pcm = new PneumaticsControlModule(21);
     pcm.clearAllStickyFaults();
     coralMotor = new VictorSPXMotorSubsystem(14, "coralMotor", false);
+    harvestorMotor = new VictorSPXMotorSubsystem(5, "harvestorMotor", true);
     
     cagePneumatic = new PneumaticSubsystem(21, 2, 3, true);
     algaePneumatic = new PneumaticSubsystem(21,4, 5, false);
-
-    
+    algaeRemoverPneumatic = new Solenoid(21,PneumaticsModuleType.CTREPCM,1);
+    algaeRemoverPneumatic.set(false);
         
     
 
@@ -140,24 +145,24 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
 
-
+    //ELEVATOR / NECK LIFTING
     if(xbox1.getAButton() & !xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() > 0 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck down
-      giraffeNeckMotor.setSpeed(-0.35);
-    }else if(!xbox1.getAButton() & xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() < 59.9 || xbox1.getLeftTriggerAxis() > 0.1)){
+      giraffeNeckMotor.setSpeed(-0.75);
+    }else if(!xbox1.getAButton() & xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() < 180 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck up`
-      giraffeNeckMotor.setSpeed(0.32);
+      giraffeNeckMotor.setSpeed(0.6); //was 32
     }else if(xbox1.getXButton()){
       if(giraffeNeckMotor.getEncoderDegrees()< heightForBottomPole){
-        giraffeNeckMotor.setSpeed((0.32));
+        giraffeNeckMotor.setSpeed((0.6));
       }else{
-        giraffeNeckMotor.setSpeed(-0.32);
+        giraffeNeckMotor.setSpeed(-0.75);
       }
     }else if(xbox1.getBButton()){
       if(giraffeNeckMotor.getEncoderDegrees()< heightForMiddlePole){
-        giraffeNeckMotor.setSpeed((0.32));
+        giraffeNeckMotor.setSpeed((0.6));
       }else{
-        giraffeNeckMotor.setSpeed(-0.32);
+        giraffeNeckMotor.setSpeed(-0.75);
       }
     }
     else{
@@ -168,7 +173,10 @@ public class Robot extends TimedRobot {
       giraffeNeckMotor.resetEncoder();
     }
     
-
+    //needed to reset neck if the starts at a non nutral height
+    if(xbox1.getBackButton() ){
+      giraffeNeckMotor.setSpeed(-0.3);
+    }
     
 
     //coral motor
@@ -176,6 +184,8 @@ public class Robot extends TimedRobot {
       coralMotor.SetSpeed(0.3);
     }else if(!xbox1.getRightBumperButton() && xbox1.getLeftBumperButton()){
       coralMotor.SetSpeed(-0.3);
+    }else if(xbox0.getRightBumperButton()){
+      coralMotor.SetSpeed(.4);
     }else if(xbox1.getRightTriggerAxis() > 0.5){
       coralMotor.SetSpeed(1);
     }
@@ -183,10 +193,20 @@ public class Robot extends TimedRobot {
       coralMotor.SetSpeed(0);
     }
 
+    //harvestor motor
+    if(xbox0.getXButton() && !xbox0.getLeftBumperButton()){
+      harvestorMotor.SetSpeed(-1);
+    }else if(!xbox0.getXButton() && xbox0.getLeftBumperButton())
+      harvestorMotor.SetSpeed(.5);
+    
+    else{
+      harvestorMotor.SetSpeed(0);
+    }
 
 
-    //cage pin piston
-    if(xbox1.getBackButtonPressed()){
+
+    //harvestor piston
+    if(xbox0.getAButtonPressed()){
       algaePneumatic.TogglePneumatic();
     }
     
@@ -197,6 +217,10 @@ public class Robot extends TimedRobot {
       cagePneumatic.TogglePneumatic();
     }
 
+    //algae knocker piston
+    if(xbox0.getYButtonPressed()){
+      algaeRemoverPneumatic.toggle();
+    }
 
   }
 

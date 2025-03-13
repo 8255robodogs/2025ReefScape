@@ -26,17 +26,16 @@ import frc.robot.commands.SetPoseCmd;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VictorSPXMotorSubsystem;
 
-public class AutoShootAndStayStill extends SequentialCommandGroup{
+public class Forward extends SequentialCommandGroup{
 
-    
-    private Pose2d blueMiddle = new Pose2d(7.788,6.142, new Rotation2d(180));
+    private Pose2d blueMiddle = new Pose2d(7.120,5.66, new Rotation2d(0));
 
 
-    public AutoShootAndStayStill(SwerveSubsystem swerve){
+    public Forward(SwerveSubsystem swerve){
         PathPlannerPath path = null;
         swerve.SetPose(blueMiddle);
         try {
-            path = PathPlannerPath.fromPathFile("ToCloseLeft");
+            path = PathPlannerPath.fromPathFile("Forward");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -45,7 +44,7 @@ public class AutoShootAndStayStill extends SequentialCommandGroup{
         addCommands(
             new SetPoseCmd(blueMiddle, swerve),
             new WaitCommand(1),
-            //AutoBuilder.followPath(path),
+            AutoBuilder.followPath(path),
             new WaitCommand(1)
 
 
@@ -59,4 +58,3 @@ public class AutoShootAndStayStill extends SequentialCommandGroup{
 
 
 }
-

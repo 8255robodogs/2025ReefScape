@@ -1,19 +1,21 @@
 package frc.robot.commands;
 
+import com.revrobotics.spark.SparkMax;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.SparkMaxMotor;
 import frc.robot.subsystems.VictorSPXMotorSubsystem;
 
 public class CmdSpinMotorPositive extends Command{
-    private VictorSPXMotorSubsystem motor;
+    private SparkMaxMotor motor;
     private double secondsToSpin;
     private long startTime;
     private float secondsElapsed = 0.0f;
     
 
-    public CmdSpinMotorPositive( double seconds, VictorSPXMotorSubsystem motorSubsystem){
+    public CmdSpinMotorPositive( double seconds, SparkMaxMotor motorSubsystem){
         secondsToSpin = seconds;
         this.motor = motorSubsystem;
-        addRequirements(motorSubsystem);
         
     }
 
@@ -25,7 +27,7 @@ public class CmdSpinMotorPositive extends Command{
 
     @Override 
     public void execute(){
-        motor.AccelerateInPositiveDirection();
+        motor.setSpeed(.3);
         
         //time tracking
         float currentTime = System.nanoTime();
@@ -48,7 +50,7 @@ public class CmdSpinMotorPositive extends Command{
 
     @Override
     public void end(boolean interrupted){
-        
+        motor.setSpeed(0);
     }
 
  
