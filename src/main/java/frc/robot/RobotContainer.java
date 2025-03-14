@@ -32,8 +32,8 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
-  private final SparkMaxMotor coralFeeder = new SparkMaxMotor(14, false);
-  private final SparkMaxMotor giraffeNeckMotor = new SparkMaxMotor(9,true);
+  //private final SparkMaxMotor coralFeeder = new SparkMaxMotor(14, false);
+  //private final SparkMaxMotor giraffeNeckMotor = new SparkMaxMotor(9,true);
   //private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
 
   //declare the controller
@@ -57,7 +57,7 @@ public class RobotContainer {
     () -> m_driverController.getLeftX() *1)
     .withControllerRotationAxis(m_driverController::getRightX)
     .deadband(OperatorConstants.kDriverStickDeadband)
-    .scaleTranslation(0.8)
+    .scaleTranslation(1)
     .allianceRelativeControl(true);
 
   SwerveInputStream driveDirectAngle = driveAngularVelocity.copy()

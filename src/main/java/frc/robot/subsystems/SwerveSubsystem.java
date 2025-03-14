@@ -13,6 +13,7 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.parser.SwerveParser;
 import swervelib.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -25,7 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SwerveSubsystem extends SubsystemBase {
  
-  double maximumSpeed = Units.feetToMeters(4.5);
+  double maximumSpeed = Units.feetToMeters(20);
   File swerveJsonDirectory = new File(Filesystem.getDeployDirectory(),"swerve");
   SwerveDrive swerveDrive;
 
@@ -104,9 +105,9 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   private boolean isRedAlliance()
   {
-    return false;
-    //var alliance = DriverStation.getAlliance();
-    //return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+    //return false;
+    var alliance = DriverStation.getAlliance();
+    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
   }
 
 
@@ -173,16 +174,20 @@ public class SwerveSubsystem extends SubsystemBase {
           this::getRobotVelocity,
           // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
           (speedsRobotRelative, moduleFeedForwards) -> {
+            var invertedSpeeds = new ChassisSpeeds(
+              -speedsRobotRelative.vxMetersPerSecond,
+              -speedsRobotRelative.vyMetersPerSecond,
+              -speedsRobotRelative.omegaRadiansPerSecond);
             if (enableFeedforward)
             {
               swerveDrive.drive(
-                  speedsRobotRelative,
-                  swerveDrive.kinematics.toSwerveModuleStates(speedsRobotRelative),
+                  invertedSpeeds,
+                  swerveDrive.kinematics.toSwerveModuleStates(invertedSpeeds),
                   moduleFeedForwards.linearForces()
                                );
             } else
             {
-              swerveDrive.setChassisSpeeds(speedsRobotRelative);
+              swerveDrive.setChassisSpeeds(invertedSpeeds);
             }
           },
           // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
@@ -279,13 +284,28 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void periodic(){
-    System.out.println("Pose X/Y/rot" + 
-    swerveDrive.getPose().getX() + 
-    " / " + 
-    swerveDrive.getPose().getY() +
-    " / " +
-    swerveDrive.getPose().getRotation()
+
+    /* 
+    System.out.println( 
+    "X: " + Math.round(swerveDrive.getPose().getX() * 1000) /1000 + 
+    "   " +
+    "Y: " + Math.round(swerveDrive.getPose().getY() * 1000) / 1000 +
+    "   " +
+    "Rotation: " + swerveDrive.getPose().getRotation()
     );
+*/
+    
+
+    //for(int i=0; i<4;i++){
+      //SmartDashboard.putNumber("module"+i, swerveDrive.getModules()[i].getRelativePosition());
+      //System.out.println(
+      //"Module "+ i + ": " +
+      //swerveDrive.getModules()[i].getRelativePosition()
+    //);
+    //}
+    
+
+    
     //backward is +X  right is +Y
   }
 

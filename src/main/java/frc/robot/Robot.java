@@ -147,21 +147,21 @@ public class Robot extends TimedRobot {
     //ELEVATOR / NECK LIFTING
     if(xbox1.getAButton() & !xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() > 0 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck down
-      giraffeNeckMotor.setSpeed(-0.75);
+      giraffeNeckMotor.setSpeed(-1);
     }else if(!xbox1.getAButton() & xbox1.getYButton() & (giraffeNeckMotor.getEncoderDegrees() < 180 || xbox1.getLeftTriggerAxis() > 0.1)){
       //neck up`
-      giraffeNeckMotor.setSpeed(0.6); //was 32
+      giraffeNeckMotor.setSpeed(1); //was 32
     }else if(xbox1.getXButton()){
       if(giraffeNeckMotor.getEncoderDegrees()< heightForBottomPole){
-        giraffeNeckMotor.setSpeed((0.6));
+        giraffeNeckMotor.setSpeed((1));
       }else{
-        giraffeNeckMotor.setSpeed(-0.75);
+        giraffeNeckMotor.setSpeed(-1);
       }
     }else if(xbox1.getBButton()){
       if(giraffeNeckMotor.getEncoderDegrees()< heightForMiddlePole){
-        giraffeNeckMotor.setSpeed((0.6));
+        giraffeNeckMotor.setSpeed((1));
       }else{
-        giraffeNeckMotor.setSpeed(-0.75);
+        giraffeNeckMotor.setSpeed(-1);
       }
     }
     else{
