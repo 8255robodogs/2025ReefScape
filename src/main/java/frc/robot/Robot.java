@@ -78,8 +78,7 @@ public class Robot extends TimedRobot {
     algaePneumatic = new PneumaticSubsystem(21,4, 5, false);
     algaeRemoverPneumatic = new Solenoid(21,PneumaticsModuleType.CTREPCM,1);
     algaeRemoverPneumatic.set(false);
-        
-    
+
 
   }
 
@@ -223,6 +222,11 @@ public class Robot extends TimedRobot {
     }
 
   }
+
+
+  
+
+
 
   @Override
   public void testInit() {

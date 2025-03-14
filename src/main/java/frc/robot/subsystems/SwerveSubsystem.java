@@ -1,15 +1,9 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
-import java.io.Console;
 import java.io.File;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.swerve.SwerveModule;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
@@ -19,13 +13,9 @@ import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.parser.SwerveParser;
 import swervelib.SwerveDrive;
-import swervelib.SwerveInputStream;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -37,17 +27,15 @@ public class SwerveSubsystem extends SubsystemBase {
  
   double maximumSpeed = Units.feetToMeters(4.5);
   File swerveJsonDirectory = new File(Filesystem.getDeployDirectory(),"swerve");
-  SwerveDrive  swerveDrive;
-
+  SwerveDrive swerveDrive;
 
   public SwerveSubsystem() {
     try{
-      swerveDrive = new SwerveParser(swerveJsonDirectory).createSwerveDrive(4.5);
+      swerveDrive = new SwerveParser(swerveJsonDirectory).createSwerveDrive(maximumSpeed);
     }catch(Exception e){
       throw new RuntimeException(e);
     }
   }
-
  
   public SwerveDrive getSwerveDrive() {
     return swerveDrive;
@@ -84,12 +72,9 @@ public class SwerveSubsystem extends SubsystemBase {
     
   }
 
-  /** Set the elevator's desired height to the pickup height */
   public Command cmdResetOdometry(Pose2d initialHolonomicPose) {
     return this.runOnce(() -> swerveDrive.resetOdometry(initialHolonomicPose));
 }
-
-
 
 
    /**
@@ -119,8 +104,9 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   private boolean isRedAlliance()
   {
-    var alliance = DriverStation.getAlliance();
-    return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+    return false;
+    //var alliance = DriverStation.getAlliance();
+    //return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
   }
 
 
@@ -202,9 +188,9 @@ public class SwerveSubsystem extends SubsystemBase {
           // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
           new PPHolonomicDriveController(
               // PPHolonomicController is the built in path following controller for holonomic drive trains
-              new PIDConstants(5.0, 0.0, 0.0),
+              new PIDConstants(0.00023, 0.0000002, 1.0),
               // Translation PID constants
-              new PIDConstants(5.0, 0.0, 0.0)
+              new PIDConstants(0.05, 0.0003, 4.0)
               // Rotation PID constants
           ),
           config,
@@ -237,7 +223,7 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
 
-/**
+  /**
    * Use PathPlanner Path finding to go to a point on the field.
    *
    * @param pose Target {@link Pose2d} to go to.
@@ -245,19 +231,19 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   public Command driveToPose(Pose2d pose)
   {
-// Create the constraints to use while pathfinding
+    // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-        swerveDrive.getMaximumChassisVelocity(), 4.0,
-        swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
+      swerveDrive.getMaximumChassisVelocity(), 2.0,
+      swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(90)
+    );
 
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
+      // Since AutoBuilder is configured, we can use it to build pathfinding commands
     return AutoBuilder.pathfindToPose(
-        pose,
-        constraints,
-        edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
-                                     );
+      pose,
+      constraints,
+      edu.wpi.first.units.Units.MetersPerSecond.of(0) // Goal end velocity in meters/sec
+    );
   }
-
 
   public void setPose(Pose2d pose2d){
     swerveDrive.resetOdometry(pose2d);
@@ -265,16 +251,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public Command SetPose(Pose2d pose){
     return this.runOnce(() -> setPose(pose));
-
   }
 
-
-
-
-  
-
-
-/**
+  /**
    * Drive according to the chassis robot oriented velocity.
    *
    * @param velocity Robot oriented {@link ChassisSpeeds}
@@ -300,11 +279,14 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void periodic(){
-    SmartDashboard.putString("Pose X Y", swerveDrive.getPose().getX() + " / " + swerveDrive.getPose().getY());
-    System.out.println("Pose X Y" + swerveDrive.getPose().getX() + " / " + swerveDrive.getPose().getY());
+    System.out.println("Pose X/Y/rot" + 
+    swerveDrive.getPose().getX() + 
+    " / " + 
+    swerveDrive.getPose().getY() +
+    " / " +
+    swerveDrive.getPose().getRotation()
+    );
     //backward is +X  right is +Y
   }
-
-
 
 }

@@ -2,6 +2,7 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
+import frc.robot.commands.CmdSetElevatorHeight;
 import frc.robot.commands.CmdSpinMotorPositive;
 import frc.robot.commands.auto.programs.AutoReefscapeTest;
 import frc.robot.commands.auto.programs.Forward;
@@ -32,6 +33,7 @@ public class RobotContainer {
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
   private final SparkMaxMotor coralFeeder = new SparkMaxMotor(14, false);
+  private final SparkMaxMotor giraffeNeckMotor = new SparkMaxMotor(9,true);
   //private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
 
   //declare the controller
@@ -119,7 +121,7 @@ public class RobotContainer {
     // An example command will be run in autonomous
     
     return AutoBuilder.buildAuto("Test Auto");
-/*
+    /*
     Pose2d startPosition = new Pose2d(
       new Translation2d(0,0),
       new Rotation2d(10)
@@ -129,18 +131,17 @@ public class RobotContainer {
       new Translation2d(0.3,0),
       new Rotation2d(10)
     );
-    //3.03 1.35
-
+    
     PathConstraints constraints = new PathConstraints(1,0.5,0.1,0.1,0.1);
 
-    /*
     return AutoBuilder.resetOdom(startPosition)
     .andThen(AutoBuilder.pathfindToPose(destination1,constraints))
+    .andThen(new CmdSetElevatorHeight(giraffeNeckMotor, 3, 0.3))
     .andThen(new CmdSpinMotorPositive(1, coralFeeder))
     ;
-    */
+    
     
     //return autoSelector.getSelected();
-    
+    */
   }
 }
