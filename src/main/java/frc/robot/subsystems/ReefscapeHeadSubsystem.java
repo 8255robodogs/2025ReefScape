@@ -34,8 +34,10 @@ public class ReefscapeHeadSubsystem extends SubsystemBase{
     }
 
     public Command setHeadSpeed(double speed){
-        return Commands.runOnce(() -> setMotorSpeed(speed));
+        return Commands.run(() -> setMotorSpeed(speed),this);
     }
+
+    
 
 }
 

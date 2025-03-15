@@ -20,8 +20,8 @@ public class ReefscapeAlgaeSubsystem extends SubsystemBase{
     //algae collector rig
     private DoubleSolenoid algaeCollectorPiston;
     private int algaeCollectorPistonCanId = 21;
-    private int algaeCollectorPistonForwardPort = 4;
-    private int algaeCollectorPistonReversePort = 5;
+    private int algaeCollectorPistonForwardPort = 5;
+    private int algaeCollectorPistonReversePort = 4;
 
     private VictorSPX motor;
     private int motorControllerCanId = 5;

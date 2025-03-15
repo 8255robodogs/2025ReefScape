@@ -21,7 +21,6 @@ public class ClimberDownCmd extends Command {
 
     @Override
     public void execute() {
-            climber.lockingPiston.set(false);
             climber.climbPiston.set(Value.kReverse);
     }
 

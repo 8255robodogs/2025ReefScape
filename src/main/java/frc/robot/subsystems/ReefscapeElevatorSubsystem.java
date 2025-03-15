@@ -18,10 +18,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ReefscapeElevatorSubsystem extends SubsystemBase{
 
+    private double zeroOffset = 0;
+
     //Motor settings
     private SparkMax motor;
     private int motorControllerCanID = 9;
-    private boolean invertedMotor = false;
+    private boolean invertedMotor = true;
     private double motorSpeed = 1.0;
 
     //PID settings
@@ -71,11 +73,12 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     public void periodic(){
         System.out.println("elevatorHeight: " + getHeight()+ " ...... " + "elevatorSetPoint: "+ pid.getSetpoint());
         moveTowardsSetpoint();
+        
     }
 
     private void moveTowardsSetpoint(){
         if(pid.atSetpoint() == false){
-            setMotorSpeed(pid.calculate(getHeight()));
+            setMotorSpeed(pid.calculate(getHeight()+zeroOffset));
         }else{
             setMotorSpeed(0);
         }
@@ -106,6 +109,14 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     public Command setSetpointCommand(int level1to4){
         return Commands.runOnce(() -> setSetpoint(level1to4));
     }
+
+    public Command adjustZeroPositionCommand(double zeroAdjustment){
+        return Commands.runOnce(()-> this.zeroOffset += zeroAdjustment);
+    }
+
+  
+
+    
     
 
 }

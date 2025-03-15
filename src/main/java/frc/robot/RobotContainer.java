@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 
@@ -95,7 +96,7 @@ public class RobotContainer {
     
     //Releasing A will raise the algae harvester and reduce the wheels speed to just hold the algae
     m_driverController.a().onFalse(algaeSystem.setAlgaeCollectorPistonExtended(false)
-    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.2)));
+    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.3)));
     
     //Pressing B will set the algae harvester wheels in full reverse to spit the algae out
     m_driverController.b().onTrue(algaeSystem.setAlgaeCollectorMotorSpeed(-1));
@@ -123,6 +124,17 @@ public class RobotContainer {
     m_operatorController.x().onTrue(elevator.setSetpointCommand(2));
     m_operatorController.b().onTrue(elevator.setSetpointCommand(3));
     m_operatorController.y().onTrue(elevator.setSetpointCommand(4)); 
+
+    //Press Dpad Up to start moving the elevator up & disable auto height setting
+    m_operatorController.povUp().onTrue(elevator.adjustZeroPositionCommand(0.5)
+    );
+
+    //Press Dpad Up to start moving the elevator up & disable auto height setting
+    m_operatorController.povDown().onTrue(elevator.adjustZeroPositionCommand(-0.5)
+    );
+
+
+
 
     //head
     head.setDefaultCommand(head.setHeadSpeed(0));
@@ -160,6 +172,10 @@ public class RobotContainer {
     // An example command will be run in autonomous
     
     return AutoBuilder.buildAuto("Test Auto")
+    .andThen(head.setHeadSpeed(.5)
+    .andThen(new WaitCommand(1))
+    .andThen(head.setHeadSpeed(0))
+    )
     
     ;
 
