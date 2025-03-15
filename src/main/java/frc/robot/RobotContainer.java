@@ -120,7 +120,9 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     
-    return AutoBuilder.buildAuto("Test Auto");
+    return AutoBuilder.buildAuto("Test Auto")
+    
+    ;
     /*
     Pose2d startPosition = new Pose2d(
       new Translation2d(0,0),
