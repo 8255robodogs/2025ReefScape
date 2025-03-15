@@ -1,26 +1,20 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.CmdSetElevatorHeight;
-import frc.robot.commands.CmdSpinMotorPositive;
-import frc.robot.commands.auto.programs.AutoReefscapeTest;
-import frc.robot.commands.auto.programs.Forward;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.commands.ClimberDownCmd;
+import frc.robot.commands.ClimberUpCmd;
+import frc.robot.subsystems.ReefscapeAlgaeSubsystem;
+import frc.robot.subsystems.ReefscapeClimbSubsystem;
 import frc.robot.subsystems.ReefscapeElevatorSubsystem;
-import frc.robot.subsystems.SparkMaxMotor;
+import frc.robot.subsystems.ReefscapeHeadSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -30,11 +24,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 public class RobotContainer {
   
   // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
-  //private final SparkMaxMotor coralFeeder = new SparkMaxMotor(14, false);
-  //private final SparkMaxMotor giraffeNeckMotor = new SparkMaxMotor(9,true);
-  //private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
+  private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
+  private final ReefscapeHeadSubsystem head = new ReefscapeHeadSubsystem();
+  private final ReefscapeAlgaeSubsystem algaeSystem = new ReefscapeAlgaeSubsystem();
+  private final ReefscapeClimbSubsystem climber = new ReefscapeClimbSubsystem();
 
   //declare the controller
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -47,10 +41,6 @@ public class RobotContainer {
     private Pose2d blueMiddle = new Pose2d(7.120,5.66, new Rotation2d(0));
     private Pose2d blueRight = new Pose2d(7.788,5.069, new Rotation2d(0));
     
-
-
-
-
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
       drivebase.getSwerveDrive(),
     () -> m_driverController.getLeftY() *1,
@@ -61,9 +51,9 @@ public class RobotContainer {
     .allianceRelativeControl(true);
 
   SwerveInputStream driveDirectAngle = driveAngularVelocity.copy()
-                                            .withControllerHeadingAxis(m_driverController::getRightX, 
-                                                                       m_driverController::getRightY)
-                                                                       .headingWhile(true);
+    .withControllerHeadingAxis(m_driverController::getRightX, 
+    m_driverController::getRightY)
+    .headingWhile(true);
 
   Command driveFieldOrientedDirectAngle = drivebase.driveFieldOriented(driveDirectAngle);
   Command driveFieldOrientedAngularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
@@ -71,42 +61,89 @@ public class RobotContainer {
 
   
   public RobotContainer() {
+    //Explains the robot to pathplanner so it can be used to drive paths.
     drivebase.setupPathPlanner();
+    
     //registers controls
     configureBindings();
     configureAutos();
-    //registers the names of commands so they can be found in Path Planner
-    //NamedCommands.registerCommand("goToTopPoleHeight", Commands.runOnce(elevator::goToTopPoleHeight));
-    //NamedCommands.registerCommand("goToMiddlePoleHeight", Commands.runOnce(elevator::goToMiddlePoleHeight));
-    //NamedCommands.registerCommand("goToBottomPoleHeight", Commands.runOnce(elevator::goToBottomPoleHeight));
-    //NamedCommands.registerCommand("goToPickupHeight", Commands.runOnce(elevator::goToPickupHeight));
   }
   
   private void configureBindings() {
     
-    //driver controller
+    //DRIVER CONTROLLER (CONTROLLER ZERO)
+
+    //driving controls
+
+    //this makes the drivebase drive. Very important.
     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
+    //hold X to lock the wheels and resist being pushed
     m_driverController.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-    m_driverController.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
+    //press start to zero your heading
+    m_driverController.start().onTrue(Commands.runOnce(drivebase::zeroGyro));
     
 
-    
 
-  }
+
+    //algae systems - collection and scoring
+    
+    //Pressing A will lower the algae harvester and turn on the wheels to suck algae in
+    m_driverController.a().onTrue(algaeSystem.setAlgaeCollectorPistonExtended(true)
+    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(1)));
+    
+    //Releasing A will raise the algae harvester and reduce the wheels speed to just hold the algae
+    m_driverController.a().onFalse(algaeSystem.setAlgaeCollectorPistonExtended(false)
+    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.2)));
+    
+    //Pressing B will set the algae harvester wheels in full reverse to spit the algae out
+    m_driverController.b().onTrue(algaeSystem.setAlgaeCollectorMotorSpeed(-1));
+    
+    //Releasing B will turn the algae harvester wheels off
+    m_driverController.b().onFalse(algaeSystem.setAlgaeCollectorMotorSpeed(0));
+
+    //algae systems - remover tool
+    
+    //toggle the remover
+    m_driverController.y().onTrue(algaeSystem.toggleAlgaeRemover());
+
+
+
+
+
+
+
+
+
+    //OPERATOR CONTROLLER (CONTROLLER ONE)
+
+    //elevator
+    m_operatorController.a().onTrue(elevator.setSetpointCommand(1));
+    m_operatorController.x().onTrue(elevator.setSetpointCommand(2));
+    m_operatorController.b().onTrue(elevator.setSetpointCommand(3));
+    m_operatorController.y().onTrue(elevator.setSetpointCommand(4)); 
+
+    //head
+    head.setDefaultCommand(head.setHeadSpeed(0));
+    m_operatorController.rightBumper().onTrue(head.setHeadSpeed(0.4));
+    m_operatorController.leftBumper().onTrue(head.setHeadSpeed(-0.4));
+    m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
+    m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
+
+    //lifter
+    m_operatorController.start().onTrue(new ClimberUpCmd(climber));
+    m_operatorController.back().onTrue(new ClimberDownCmd(climber));
+
+
+  } 
 
   private void configureAutos(){
-    SmartDashboard.putData("auto selector", autoSelector);
-    autoSelector.setDefaultOption("Do Nothing", null);
-    autoSelector.addOption("AutoReefscapeTest", new AutoReefscapeTest(drivebase) );
-    autoSelector.addOption("Forward", new Forward(drivebase) );
-    
-
+    /*
     SmartDashboard.putData(startingPositionSelector);
     startingPositionSelector.setDefaultOption("blueMiddle", blueMiddle);
     startingPositionSelector.addOption("blueLeft",blueLeft);
     startingPositionSelector.addOption("blueMiddle", blueMiddle);
     startingPositionSelector.addOption("blueRight", blueRight);
-    
+    */
     
   }
 
@@ -123,6 +160,7 @@ public class RobotContainer {
     return AutoBuilder.buildAuto("Test Auto")
     
     ;
+
     /*
     Pose2d startPosition = new Pose2d(
       new Translation2d(0,0),
