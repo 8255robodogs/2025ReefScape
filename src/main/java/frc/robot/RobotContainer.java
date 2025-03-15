@@ -7,6 +7,7 @@ import frc.robot.subsystems.ReefscapeAlgaeSubsystem;
 import frc.robot.subsystems.ReefscapeClimbSubsystem;
 import frc.robot.subsystems.ReefscapeElevatorSubsystem;
 import frc.robot.subsystems.ReefscapeHeadSubsystem;
+import frc.robot.subsystems.ReefscapeLEDSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
@@ -29,6 +30,7 @@ public class RobotContainer {
   private final ReefscapeHeadSubsystem head = new ReefscapeHeadSubsystem();
   private final ReefscapeAlgaeSubsystem algaeSystem = new ReefscapeAlgaeSubsystem();
   private final ReefscapeClimbSubsystem climber = new ReefscapeClimbSubsystem();
+  //private final ReefscapeLEDSubsystem leds = new ReefscapeLEDSubsystem();
 
   //declare the controller
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
