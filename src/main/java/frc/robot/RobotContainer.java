@@ -12,6 +12,7 @@ import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -109,7 +110,10 @@ public class RobotContainer {
     //toggle the remover
     m_driverController.y().onTrue(algaeSystem.toggleAlgaeRemover());
 
-
+    //head coral motor
+    m_driverController.rightBumper().onTrue(head.setHeadSpeed(.5));
+    m_driverController.rightBumper().onFalse(head.setHeadSpeed(0));
+    
 
 
 
@@ -137,11 +141,13 @@ public class RobotContainer {
 
 
     //head
-    head.setDefaultCommand(head.setHeadSpeed(0));
-    m_operatorController.rightBumper().onTrue(head.setHeadSpeed(0.4));
-    m_operatorController.leftBumper().onTrue(head.setHeadSpeed(-0.4));
-    m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
-    m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
+    //head.setDefaultCommand(head.setHeadSpeedDefault(0));
+    m_operatorController.rightBumper().onTrue(head.setHeadSpeed(.3));
+    m_operatorController.rightBumper().onFalse(head.setHeadSpeed(0));
+    m_operatorController.leftBumper().whileTrue(head.setHeadSpeed(-.3));
+    m_operatorController.leftBumper().onFalse(head.setHeadSpeed(0));
+    //m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
+    //m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
 
     //lifter
     m_operatorController.start().onTrue(new ClimberUpCmd(climber));
@@ -172,11 +178,13 @@ public class RobotContainer {
     // An example command will be run in autonomous
     
     return AutoBuilder.buildAuto("Test Auto")
-    .andThen(head.setHeadSpeed(.5)
+    .alongWith(elevator.setSetpointCommand(4))
+    .andThen(head.setHeadSpeed(.5))
     .andThen(new WaitCommand(1))
     .andThen(head.setHeadSpeed(0))
-    )
-    
+    .andThen(elevator.setSetpointCommand(0))
+    .andThen(new WaitCommand(0.5))
+    .andThen(AutoBuilder.buildAuto("Human Left"))
     ;
 
     /*

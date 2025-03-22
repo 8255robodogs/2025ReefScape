@@ -31,7 +31,7 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     private final double p = 0.1;
     private final double i = 0.0;
     private final double d = 0.01;
-    private final double pidErrorTolerance = 1;
+    private final double pidErrorTolerance = 0.2;
 
     //Elevator Height Presets
     private final double heightL4 = 180;

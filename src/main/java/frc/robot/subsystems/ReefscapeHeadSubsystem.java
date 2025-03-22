@@ -17,6 +17,7 @@ public class ReefscapeHeadSubsystem extends SubsystemBase{
     //Constructor
     public ReefscapeHeadSubsystem(){
         motor = new VictorSPX(motorControllerCanID);
+        
     }
 
     public void setMotorSpeed(double speed){
@@ -33,11 +34,15 @@ public class ReefscapeHeadSubsystem extends SubsystemBase{
         
     }
 
-    public Command setHeadSpeed(double speed){
+    public Command setHeadSpeedDefault(double speed){
         return Commands.run(() -> setMotorSpeed(speed),this);
     }
 
-    
+    public Command setHeadSpeed(double speed){
+        return Commands.runOnce(() -> setMotorSpeed(speed),this);
+    }
+
+
 
 }
 
