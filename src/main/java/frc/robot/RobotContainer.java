@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 
 
@@ -32,7 +33,7 @@ public class RobotContainer {
   private final ReefscapeHeadSubsystem head = new ReefscapeHeadSubsystem();
   private final ReefscapeAlgaeSubsystem algaeSystem = new ReefscapeAlgaeSubsystem();
   private final ReefscapeClimbSubsystem climber = new ReefscapeClimbSubsystem();
-  //private final ReefscapeLEDSubsystem leds = new ReefscapeLEDSubsystem();
+  private final ReefscapeLEDSubsystem leds = new ReefscapeLEDSubsystem();
 
   //declare the controller
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
@@ -92,18 +93,18 @@ public class RobotContainer {
     //algae systems - collection and scoring
     
     //Pressing A will lower the algae harvester and turn on the wheels to suck algae in
-    m_driverController.a().onTrue(algaeSystem.setAlgaeCollectorPistonExtended(true)
+    m_driverController.leftBumper().onTrue(algaeSystem.setAlgaeCollectorPistonExtended(true)
     .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(1)));
     
     //Releasing A will raise the algae harvester and reduce the wheels speed to just hold the algae
-    m_driverController.a().onFalse(algaeSystem.setAlgaeCollectorPistonExtended(false)
+    m_driverController.leftBumper().onFalse(algaeSystem.setAlgaeCollectorPistonExtended(false)
     .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.3)));
     
     //Pressing B will set the algae harvester wheels in full reverse to spit the algae out
-    m_driverController.b().onTrue(algaeSystem.setAlgaeCollectorMotorSpeed(-1));
+    m_driverController.leftTrigger(0.5).onTrue(algaeSystem.setAlgaeCollectorMotorSpeed(-1));
     
     //Releasing B will turn the algae harvester wheels off
-    m_driverController.b().onFalse(algaeSystem.setAlgaeCollectorMotorSpeed(0));
+    m_driverController.leftTrigger(0.5).onFalse(algaeSystem.setAlgaeCollectorMotorSpeed(0));
 
     //algae systems - remover tool
     
@@ -128,14 +129,8 @@ public class RobotContainer {
     m_operatorController.x().onTrue(elevator.setSetpointCommand(2));
     m_operatorController.b().onTrue(elevator.setSetpointCommand(3));
     m_operatorController.y().onTrue(elevator.setSetpointCommand(4)); 
-
-    //Press Dpad Up to start moving the elevator up & disable auto height setting
-    m_operatorController.povUp().onTrue(elevator.adjustZeroPositionCommand(0.5)
-    );
-
-    //Press Dpad Up to start moving the elevator up & disable auto height setting
-    m_operatorController.povDown().onTrue(elevator.adjustZeroPositionCommand(-0.5)
-    );
+    
+    
 
 
 
@@ -149,7 +144,7 @@ public class RobotContainer {
     //m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
     //m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
 
-    //lifter
+    //climber
     m_operatorController.start().onTrue(new ClimberUpCmd(climber));
     m_operatorController.back().onTrue(new ClimberDownCmd(climber));
 

@@ -14,28 +14,27 @@ public class ReefscapeLEDSubsystem extends SubsystemBase {
     
     private AddressableLED ledStrip;  
     private int ledStripPWMportNumber = 1;
-    private int numPixels = 60;    // The number of addressable LEDs in the strip
+    private int numPixels = 256;    // The number of addressable LEDs in the strip
     private AddressableLEDBuffer buffer;
-
-    LEDPattern rainbow = LEDPattern.rainbow(255,128);
-    Distance kLedSpacing = Meters.of(1 / 120.0);
-    private final LEDPattern scrollingRainbow =
-        rainbow.scrollAtAbsoluteSpeed(MetersPerSecond.of(1), kLedSpacing);
 
     // Constructor to initialize the LED strip
     public ReefscapeLEDSubsystem() {
         this.ledStrip = new AddressableLED(ledStripPWMportNumber);
-        ledStrip.setLength(numPixels);
-        buffer = new AddressableLEDBuffer(numPixels);
+        this.ledStrip.setLength(numPixels);
+        this.buffer = new AddressableLEDBuffer(numPixels);
 
-        scrollingRainbow.applyTo(buffer);
-        ledStrip.setData(buffer);
+        for(int i=0;i<buffer.getLength();i++){
+            buffer.setRGB(i, 180, 0, 0);
+        }
+
+        this.ledStrip.setData(buffer);
+
     }
 
 
     @Override
     public void periodic() {
-        scrollingRainbow.applyTo(buffer);
         ledStrip.setData(buffer);
     }
+
 }
