@@ -12,11 +12,18 @@ import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoMode;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -27,6 +34,14 @@ import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 public class RobotContainer {
   
+
+  //used for DPAD driving
+  public double creepSpeed = 0.2;
+
+
+
+
+
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
   private final ReefscapeElevatorSubsystem elevator = new ReefscapeElevatorSubsystem();
@@ -35,21 +50,17 @@ public class RobotContainer {
   private final ReefscapeClimbSubsystem climber = new ReefscapeClimbSubsystem();
   private final ReefscapeLEDSubsystem leds = new ReefscapeLEDSubsystem(elevator::getLevel);
 
+  
+
   //declare the controller
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController m_operatorController = new CommandXboxController(OperatorConstants.kOperatorControllerPort);
   
-  SendableChooser<Command> autoSelector = new SendableChooser<Command>();
-  
-  SendableChooser<Pose2d> startingPositionSelector = new SendableChooser<>();
-    private Pose2d blueLeft = new Pose2d(7.386,7.275, new Rotation2d(0));
-    private Pose2d blueMiddle = new Pose2d(7.120,5.66, new Rotation2d(0));
-    private Pose2d blueRight = new Pose2d(7.788,5.069, new Rotation2d(0));
-    
+  //Setting up swerve drive
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
       drivebase.getSwerveDrive(),
-    () -> m_driverController.getLeftY() *1,
-    () -> m_driverController.getLeftX() *1)
+    () -> m_driverController.getLeftY() *-1,
+    () -> m_driverController.getLeftX() *-1)
     .withControllerRotationAxis(m_driverController::getRightX)
     .deadband(OperatorConstants.kDriverStickDeadband)
     .scaleTranslation(1)
@@ -69,6 +80,11 @@ public class RobotContainer {
     //Explains the robot to pathplanner so it can be used to drive paths.
     drivebase.setupPathPlanner();
     
+    //create the camera
+    //UsbCamera camera = CameraServer.startAutomaticCapture();
+    //camera.setVideoMode(PixelFormat.kMJPEG, 320, 240, 15);
+    
+
     //registers controls
     configureBindings();
     configureAutos();
@@ -88,6 +104,16 @@ public class RobotContainer {
     m_driverController.start().onTrue(Commands.runOnce(drivebase::zeroGyro));
     
 
+    //DPAD creeping
+    m_driverController.povRight().whileTrue(drivebase.driveRobotRelativeCommand(0.0, creepSpeed, 0.0));
+    m_driverController.povLeft().whileTrue(drivebase.driveRobotRelativeCommand(0.0, -creepSpeed, 0.0));
+    m_driverController.povUp().whileTrue(drivebase.driveRobotRelativeCommand(-creepSpeed, 0, 0.0));
+    m_driverController.povDown().whileTrue(drivebase.driveRobotRelativeCommand(creepSpeed, 0, 0.0));
+    
+    m_driverController.povDownRight().whileTrue(drivebase.driveRobotRelativeCommand(creepSpeed, creepSpeed, 0.0));
+    m_driverController.povDownLeft().whileTrue(drivebase.driveRobotRelativeCommand(creepSpeed, -creepSpeed, 0.0));
+    m_driverController.povUpRight().whileTrue(drivebase.driveRobotRelativeCommand(-creepSpeed, creepSpeed, 0.0));
+    m_driverController.povUpLeft().whileTrue(drivebase.driveRobotRelativeCommand(-creepSpeed, -creepSpeed, 0.0));
 
 
     //algae systems - collection and scoring
@@ -125,10 +151,10 @@ public class RobotContainer {
     //OPERATOR CONTROLLER (CONTROLLER ONE)
 
     //elevator
-    m_operatorController.a().onTrue(elevator.setSetpointCommand(1));
-    m_operatorController.x().onTrue(elevator.setSetpointCommand(2));
-    m_operatorController.b().onTrue(elevator.setSetpointCommand(3));
-    m_operatorController.y().onTrue(elevator.setSetpointCommand(4)); 
+    m_operatorController.a().onTrue(elevator.setLevel(1));
+    m_operatorController.x().onTrue(elevator.setLevel(2));
+    m_operatorController.b().onTrue(elevator.setLevel(3));
+    m_operatorController.y().onTrue(elevator.setLevel(4)); 
     
     
 
@@ -137,9 +163,9 @@ public class RobotContainer {
 
     //head
     //head.setDefaultCommand(head.setHeadSpeedDefault(0));
-    m_operatorController.rightBumper().onTrue(head.setHeadSpeed(.3));
+    m_operatorController.rightBumper().onTrue(head.setHeadSpeed(0.3));
     m_operatorController.rightBumper().onFalse(head.setHeadSpeed(0));
-    m_operatorController.leftBumper().whileTrue(head.setHeadSpeed(-.3));
+    m_operatorController.leftBumper().whileTrue(head.setHeadSpeed(-0.3));
     m_operatorController.leftBumper().onFalse(head.setHeadSpeed(0));
     //m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
     //m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
@@ -172,14 +198,25 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     
-    return AutoBuilder.buildAuto("Test Auto")
-    .alongWith(elevator.setSetpointCommand(4))
-    .andThen(head.setHeadSpeed(.5))
-    .andThen(new WaitCommand(1))
+    return 
+    AutoBuilder.buildAuto("Test Auto")
+    .alongWith(elevator.setLevel(4))
+    
+    .andThen(head.setHeadSpeed(.7))
+    .andThen(new WaitCommand(0.2))
     .andThen(head.setHeadSpeed(0))
-    .andThen(elevator.setSetpointCommand(0))
-    .andThen(new WaitCommand(0.5))
+    
+    .andThen(elevator.setLevel(1))
     .andThen(AutoBuilder.buildAuto("Human Left"))
+    
+    .andThen(head.setHeadSpeed(0.2))
+    .andThen(new WaitCommand(1.5))
+    .andThen(head.setHeadSpeed(0))
+    
+    .andThen(AutoBuilder.buildAuto("Second Score"))
+
+    .andThen(head.setHeadSpeed(.2))
+    
     ;
 
     /*

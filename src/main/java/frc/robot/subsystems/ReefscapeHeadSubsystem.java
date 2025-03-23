@@ -38,6 +38,7 @@ public class ReefscapeHeadSubsystem extends SubsystemBase{
     //Constructor
     public ReefscapeHeadSubsystem(){
         motor = new VictorSPX(motorControllerCanID);
+        motor.setNeutralMode(NeutralMode.Brake);
         lightBeamSensor = new DigitalInput(lightBeamSensorDIOportNumber);
     }
 
