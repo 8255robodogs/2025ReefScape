@@ -33,7 +33,7 @@ public class RobotContainer {
   private final ReefscapeHeadSubsystem head = new ReefscapeHeadSubsystem();
   private final ReefscapeAlgaeSubsystem algaeSystem = new ReefscapeAlgaeSubsystem();
   private final ReefscapeClimbSubsystem climber = new ReefscapeClimbSubsystem();
-  private final ReefscapeLEDSubsystem leds = new ReefscapeLEDSubsystem();
+  private final ReefscapeLEDSubsystem leds = new ReefscapeLEDSubsystem(elevator::getLevel);
 
   //declare the controller
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);

@@ -3,16 +3,21 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Value;
 
+import java.util.Map;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.BooleanEntry;
+import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -32,7 +37,6 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     private SparkMax motor;
     private int motorControllerCanID = 9;
     private boolean invertedMotor = true;
-    private double motorSpeed = 1.0;
 
     //limit switch settings
     private int limitSwitchDIOportNumber = 0;
@@ -59,11 +63,33 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     ShuffleboardTab debugTab = Shuffleboard.getTab("Debug");
     private final ShuffleboardLayout elevatorLayout = debugTab.getLayout("Elevator", BuiltInLayouts.kList)
         .withPosition(0,0)
-        .withSize(2, 2);
-    GenericEntry elevatorHeightData = elevatorLayout.add("Height",0.0).getEntry();
-    GenericEntry elevatorSetPointData = elevatorLayout.add("Setpoint",0.0).getEntry();
-    GenericEntry elevatorOffsetData = elevatorLayout.add("Offset",0.0).getEntry();
-    GenericEntry elevatorLimitSwitchData = debugTab.add("limitHit",false).withWidget("Boolean Box").getEntry();
+        .withSize(2, 3);
+
+    DoubleEntry elevatorHeightData = (DoubleEntry) elevatorLayout
+        .add("Height",0.0)
+        .withWidget(BuiltInWidgets.kNumberBar)
+        .withProperties(Map.of(
+            "Min", 0,   // Minimum value
+            "Max", heightL4,    // Maximum value
+            "Center", heightL4 / 2  // Center value
+        ))
+        .getEntry();
+
+    DoubleEntry elevatorSetPointData = (DoubleEntry) elevatorLayout
+        .add("Setpoint",0.0)
+        .withWidget(BuiltInWidgets.kNumberBar)
+        .withProperties(Map.of(
+            "Min", 0,   // Minimum value
+            "Max", heightL4,    // Maximum value
+            "Center", heightL4 / 2  // Center value
+        ))
+        .getEntry();
+
+    BooleanEntry elevatorLimitSwitchData = (BooleanEntry) debugTab
+        .add("limitHit",false)
+        .withWidget(BuiltInWidgets.kBooleanBox)
+        .getEntry();
+
 
     //Constructor
     public ReefscapeElevatorSubsystem(){
@@ -72,10 +98,6 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
         pid = new PIDController(p, i, d);
         pid.setSetpoint(heightL1);
         pid.setTolerance(pidErrorTolerance);
-
-        
-
-
     }
 
     private void setMotorSpeed(double speed){
@@ -106,94 +128,85 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     @Override
     public void periodic(){
         
-        //use our "level" value to determine where our setpoint is.
-        if(level == 1){
-            pid.setSetpoint(heightL1);
-        }else if(level == 2){
-            pid.setSetpoint(heightL2);
-        }else if(level == 3){
-            pid.setSetpoint(heightL3);
-        }else if(level == 4){
-            pid.setSetpoint(heightL4);
-        }
-        
+        //when we are at the bottom, we reset our encoder to let it know our true zero
         if(getLimitSwitchHit()){
             resetEncoder();
         }
 
-        moveTowardsSetpoint();
-
-
+        //handle movement.
+        if(level == 1){
+            moveTowardsBottom();
+        }else{
+            moveTowardsSetpoint();
+        }
 
 
         //update values for shuffleboard
-        elevatorHeightData.setDouble(getHeight());
-        elevatorSetPointData.setDouble(pid.getSetpoint());
-        elevatorLimitSwitchData.setBoolean(getLimitSwitchHit());
+        elevatorHeightData.set(getHeight());
+        elevatorSetPointData.set(pid.getSetpoint());
+        elevatorLimitSwitchData.set(getLimitSwitchHit());
         
         
-        
-        
-        
+    }
+
+    private void moveTowardsBottom(){
+        if(getLimitSwitchHit()){
+            //we are already at the bottom, apply a small voltage to hold the elevator in place
+            setMotorSpeed(-0.05);
+        }else{
+            //we are trying to move to the bottom. we do the last bit a little slower.
+            if(getHeight() > 10){
+                setMotorSpeed(-1.0);
+            }else{
+                setMotorSpeed(-0.5);
+            }
+        }
     }
 
     private void moveTowardsSetpoint(){
-        if(level == 1){
-            //Separate rules for when we are trying to go all the way down
-            if(getLimitSwitchHit()){
-                setMotorSpeed(-0.05);
-            }else{
-                if(getHeight() > 10){
-                    setMotorSpeed(-1.0);
-                }else{
-                    setMotorSpeed(-0.5);
+        if(pid.atSetpoint() == false){
+            setMotorSpeed(pid.calculate(getHeight()));
+        }else{
+            setMotorSpeed(0);
+        }
+    }
+
+    public int getLevel(){
+        return this.level;
+    }
+
+    
+    public Command setSetpointCommand(int level1to4){
+        Runnable run = new Runnable(){
+            @Override
+            public void run(){
+                switch (level1to4){
+                    case 1:
+                        level = 1;
+                        pid.setSetpoint(heightL1);
+                        break;
+                    case 2:
+                        level = 2;
+                        pid.setSetpoint(heightL2);
+                        break;
+                    case 3:
+                        level = 3;
+                        pid.setSetpoint(heightL3);
+                        break;
+                    case 4:
+                        pid.setSetpoint(heightL4);
+                        level = 4;
+                        break;
+                    default:
+                        System.out.println("Invalid level!");
+                        break;
                 }
             }
-        }else{
-            //the limit switch is not hit, use the pid to find our setpoints
-            if(pid.atSetpoint() == false){
-                setMotorSpeed(pid.calculate(getHeight()));
-            }else{
-                setMotorSpeed(0);
-            }
-        }
+        };
 
-
-        
+        return Commands.runOnce(run);
     }
 
-    private void setSetpoint(int level1to4){
-        double setpoint = motor.getEncoder().getPosition();
-        switch (level1to4){
-            case 1:
-                level = 1;
-                break;
-            case 2:
-                level = 2;
-                break;
-            case 3:
-                level = 3;
-                break;
-            case 4:
-                level = 4;
-                break;
-            default:
-                System.out.println("Invalid level!");
-                break;
-        }
-        pid.setSetpoint(setpoint);
-    }
-
-    public Command setSetpointCommand(int level1to4){
-        return Commands.runOnce(() -> setSetpoint(level1to4));
-    }
-
-    
-
-  
-
-    
-    
 
 }
 
