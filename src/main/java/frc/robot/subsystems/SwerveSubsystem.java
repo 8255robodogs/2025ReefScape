@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.parser.SwerveParser;
 import swervelib.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -26,7 +27,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SwerveSubsystem extends SubsystemBase {
  
-  double maximumSpeed = Units.feetToMeters(20);
+  double maximumSpeed = Units.feetToMeters(10);
   File swerveJsonDirectory = new File(Filesystem.getDeployDirectory(),"swerve");
   SwerveDrive swerveDrive;
 
@@ -131,10 +132,11 @@ public class SwerveSubsystem extends SubsystemBase {
     {
       zeroGyro();
       //Set the pose 180 degrees
-      //resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
+      resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(180)));
     } else
     {
       zeroGyro();
+
     }
   }
 
@@ -281,6 +283,10 @@ public class SwerveSubsystem extends SubsystemBase {
     return run(() -> drive(new ChassisSpeeds(speedInMetersPerSecond, 0, 0)))
         .until(() -> swerveDrive.getPose().getTranslation().getDistance(new Translation2d(0, 0)) >
                      distanceInMeters);
+  }
+
+  public Command driveRobotRelativeCommand(double x, double y, double rot){
+    return run(() -> drive(new ChassisSpeeds(x,y,0)));
   }
 
   public void periodic(){

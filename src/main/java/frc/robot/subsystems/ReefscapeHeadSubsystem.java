@@ -25,19 +25,12 @@ public class ReefscapeHeadSubsystem extends SubsystemBase{
     private int lightBeamSensorDIOportNumber = 1;
     private DigitalInput lightBeamSensor;
 
-    //setup shuffleboard
-    ShuffleboardTab debugTab = Shuffleboard.getTab("Debug");
-    private final ShuffleboardLayout elevatorLayout = debugTab.getLayout("Elevator", BuiltInLayouts.kList)
-        .withPosition(0,0)
-        .withSize(2, 2);
-    GenericEntry beamBrokenData = debugTab.add("beamBroken",false).withWidget("Boolean Box").getEntry();
-
-
-
+    
 
     //Constructor
     public ReefscapeHeadSubsystem(){
         motor = new VictorSPX(motorControllerCanID);
+        motor.setNeutralMode(NeutralMode.Brake);
         lightBeamSensor = new DigitalInput(lightBeamSensorDIOportNumber);
     }
 
@@ -52,7 +45,7 @@ public class ReefscapeHeadSubsystem extends SubsystemBase{
 
     @Override
     public void periodic(){
-        beamBrokenData.setBoolean(getBeamBroken());
+
     }
 
     public boolean getBeamBroken(){

@@ -4,6 +4,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Value;
 
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -32,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ReefscapeElevatorSubsystem extends SubsystemBase{
 
+    private int level = 1;
 
     //Motor settings
     private SparkMax motor;
@@ -44,7 +46,6 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     
 
     //PID settings
-    private int level = 1;
     private PIDController pid;
     private final double p = 0.1;
     private final double i = 0.0;
@@ -53,42 +54,11 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
 
     //Elevator Height Presets
     private final double heightL4 = 180;
-    private final double heightL3 = 79;
+    private final double heightL3 = 78;
     private final double heightL2 = 25.5;
     private final double heightL1 = 0;
 
     
-
-    //setup shuffleboard
-    ShuffleboardTab debugTab = Shuffleboard.getTab("Debug");
-    private final ShuffleboardLayout elevatorLayout = debugTab.getLayout("Elevator", BuiltInLayouts.kList)
-        .withPosition(0,0)
-        .withSize(2, 3);
-
-    DoubleEntry elevatorHeightData = (DoubleEntry) elevatorLayout
-        .add("Height",0.0)
-        .withWidget(BuiltInWidgets.kNumberBar)
-        .withProperties(Map.of(
-            "Min", 0,   // Minimum value
-            "Max", heightL4,    // Maximum value
-            "Center", heightL4 / 2  // Center value
-        ))
-        .getEntry();
-
-    DoubleEntry elevatorSetPointData = (DoubleEntry) elevatorLayout
-        .add("Setpoint",0.0)
-        .withWidget(BuiltInWidgets.kNumberBar)
-        .withProperties(Map.of(
-            "Min", 0,   // Minimum value
-            "Max", heightL4,    // Maximum value
-            "Center", heightL4 / 2  // Center value
-        ))
-        .getEntry();
-
-    BooleanEntry elevatorLimitSwitchData = (BooleanEntry) debugTab
-        .add("limitHit",false)
-        .withWidget(BuiltInWidgets.kBooleanBox)
-        .getEntry();
 
 
     //Constructor
@@ -100,7 +70,7 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
         pid.setTolerance(pidErrorTolerance);
     }
 
-    private void setMotorSpeed(double speed){
+    public void setMotorSpeed(double speed){
         double newSpeed = speed;
         if(invertedMotor == true){
             newSpeed = newSpeed *-1;
@@ -121,8 +91,14 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     }
 
     public boolean getLimitSwitchHit(){
-        return limitSwitch.get();
+        if(limitSwitch.get()){
+            return true;
+        }else{
+            return false;
+        }
     }
+
+    
 
 
     @Override
@@ -140,13 +116,11 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
             moveTowardsSetpoint();
         }
 
-
+        
         //update values for shuffleboard
-        elevatorHeightData.set(getHeight());
-        elevatorSetPointData.set(pid.getSetpoint());
-        elevatorLimitSwitchData.set(getLimitSwitchHit());
-        
-        
+        SmartDashboard.putNumber("elevatorLevel", level);
+        SmartDashboard.putNumber("elevatorHeight", getHeight());
+        SmartDashboard.putBoolean("elevatorLimitHit", getLimitSwitchHit());
     }
 
     private void moveTowardsBottom(){
@@ -156,7 +130,7 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
         }else{
             //we are trying to move to the bottom. we do the last bit a little slower.
             if(getHeight() > 10){
-                setMotorSpeed(-1.0);
+                setMotorSpeed(-1);
             }else{
                 setMotorSpeed(-0.5);
             }
@@ -164,11 +138,11 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     }
 
     private void moveTowardsSetpoint(){
-        if(pid.atSetpoint() == false){
+        //if(pid.atSetpoint() == false){
             setMotorSpeed(pid.calculate(getHeight()));
-        }else{
-            setMotorSpeed(0);
-        }
+        //}else{
+            //setMotorSpeed(0);
+        //}
     }
 
     public int getLevel(){
@@ -176,36 +150,35 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
     }
 
     
-    public Command setSetpointCommand(int level1to4){
-        Runnable run = new Runnable(){
-            @Override
-            public void run(){
-                switch (level1to4){
-                    case 1:
-                        level = 1;
-                        pid.setSetpoint(heightL1);
-                        break;
-                    case 2:
-                        level = 2;
-                        pid.setSetpoint(heightL2);
-                        break;
-                    case 3:
-                        level = 3;
-                        pid.setSetpoint(heightL3);
-                        break;
-                    case 4:
-                        pid.setSetpoint(heightL4);
-                        level = 4;
-                        break;
-                    default:
-                        System.out.println("Invalid level!");
-                        break;
-                }
-            }
-        };
-
-        return Commands.runOnce(run);
+    private void setSetPoint(int level1to4){
+        switch (level1to4){
+            case 1:
+                this.level = 1;
+                pid.setSetpoint(heightL1);
+                break;
+            case 2:
+                this.level = 2;
+                pid.setSetpoint(heightL2);
+                break;
+            case 3:
+                this.level = 3;
+                pid.setSetpoint(heightL3);
+                break;
+            case 4:
+                this.level = 4;    
+                pid.setSetpoint(heightL4);
+                break;
+            default:
+                System.out.println("Invalid level!");
+                break;
+        }
     }
+
+    public Command setLevel(int level1to4){    
+        return Commands.runOnce(()-> setSetPoint(level1to4));
+    }
+
+    
 
 
 }

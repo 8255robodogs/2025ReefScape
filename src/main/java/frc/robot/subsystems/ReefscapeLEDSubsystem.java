@@ -21,7 +21,7 @@ public class ReefscapeLEDSubsystem extends SubsystemBase {
     
     private AddressableLED ledStrip;  
     private int ledStripPWMportNumber = 1;
-    private int numPixels = 256;    // The number of addressable LEDs in the strip
+    private int numPixels = 64;    // The number of addressable LEDs in the strip
     private AddressableLEDBuffer buffer;
 
     private IntSupplier elevatorLevel;
@@ -37,10 +37,9 @@ public class ReefscapeLEDSubsystem extends SubsystemBase {
         //get a link to the elevator's current level
         this.elevatorLevel = elevatorLevel;
 
-
         //set the lights on startup
         for(int i=0;i<buffer.getLength();i++){
-            buffer.setLED(i, Color.kCoral);;
+            buffer.setLED(i, Color.kBlue);
         }
         this.ledStrip.setData(buffer);
 
@@ -50,6 +49,7 @@ public class ReefscapeLEDSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
 
+        /* 
         if(DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() < 19){
             //last 19 seconds of match
             setColor(Color.kPurple);
@@ -63,11 +63,12 @@ public class ReefscapeLEDSubsystem extends SubsystemBase {
             //all other times
             setColorByElevatorLevel();
         }
+        */
 
-
+        setColorByElevatorLevel();
 
         //apply the buffer data to the led strip
-        ledStrip.setData(buffer);
+        this.ledStrip.setData(buffer);
     }
 
 
