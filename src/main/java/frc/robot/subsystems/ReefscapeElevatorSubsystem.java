@@ -121,7 +121,6 @@ public class ReefscapeElevatorSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("elevatorLevel", level);
         SmartDashboard.putNumber("elevatorHeight", getHeight());
         SmartDashboard.putBoolean("elevatorLimitHit", getLimitSwitchHit());
-        
     }
 
     private void moveTowardsBottom(){

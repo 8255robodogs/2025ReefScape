@@ -74,15 +74,21 @@ public class RobotContainer {
   Command driveFieldOrientedDirectAngle = drivebase.driveFieldOriented(driveDirectAngle);
   Command driveFieldOrientedAngularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
 
-
+  CameraServer cameraServer;
   
+  private final SendableChooser<String> m_autoChooser = new SendableChooser<>();
+
+
+
+
   public RobotContainer() {
     //Explains the robot to pathplanner so it can be used to drive paths.
     drivebase.setupPathPlanner();
     
     //create the camera
-    //UsbCamera camera = CameraServer.startAutomaticCapture();
-    //camera.setVideoMode(PixelFormat.kMJPEG, 320, 240, 15);
+    //CameraServer.addServer("cams");
+    //CameraServer.startAutomaticCapture();
+
     
 
     //registers controls
@@ -118,18 +124,18 @@ public class RobotContainer {
 
     //algae systems - collection and scoring
     
-    //Pressing A will lower the algae harvester and turn on the wheels to suck algae in
+    //Pressing Left Bumper will lower the algae harvester and turn on the wheels to suck algae in
     m_driverController.leftBumper().onTrue(algaeSystem.setAlgaeCollectorPistonExtended(true)
-    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(1)));
+    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.5)));
     
-    //Releasing A will raise the algae harvester and reduce the wheels speed to just hold the algae
+    //Releasing Left Bumper will raise the algae harvester and reduce the wheels speed to just hold the algae
     m_driverController.leftBumper().onFalse(algaeSystem.setAlgaeCollectorPistonExtended(false)
-    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.3)));
+    .alongWith(algaeSystem.setAlgaeCollectorMotorSpeed(0.1)));
     
-    //Pressing B will set the algae harvester wheels in full reverse to spit the algae out
+    //Pressing Left Trigger will set the algae harvester wheels in full reverse to spit the algae out
     m_driverController.leftTrigger(0.5).onTrue(algaeSystem.setAlgaeCollectorMotorSpeed(-1));
     
-    //Releasing B will turn the algae harvester wheels off
+    //Releasing Left Trigger will turn the algae harvester wheels off
     m_driverController.leftTrigger(0.5).onFalse(algaeSystem.setAlgaeCollectorMotorSpeed(0));
 
     //algae systems - remover tool
@@ -137,9 +143,7 @@ public class RobotContainer {
     //toggle the remover
     m_driverController.y().onTrue(algaeSystem.toggleAlgaeRemover());
 
-    //head coral motor
-    m_driverController.rightBumper().onTrue(head.setHeadSpeed(.5));
-    m_driverController.rightBumper().onFalse(head.setHeadSpeed(0));
+    
     
 
 
@@ -165,27 +169,30 @@ public class RobotContainer {
     //head.setDefaultCommand(head.setHeadSpeedDefault(0));
     m_operatorController.rightBumper().onTrue(head.setHeadSpeed(0.3));
     m_operatorController.rightBumper().onFalse(head.setHeadSpeed(0));
-    m_operatorController.leftBumper().whileTrue(head.setHeadSpeed(-0.3));
+    m_operatorController.leftBumper().onTrue(head.setHeadSpeed(-0.3));
     m_operatorController.leftBumper().onFalse(head.setHeadSpeed(0));
-    //m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
-    //m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
+    m_operatorController.rightTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getRightTriggerAxis()));
+    m_operatorController.leftTrigger(0.1).whileTrue(head.setHeadSpeed(m_operatorController.getLeftTriggerAxis()*-1));
 
     //climber
     m_operatorController.start().onTrue(new ClimberUpCmd(climber));
     m_operatorController.back().onTrue(new ClimberDownCmd(climber));
 
 
+
+
+    ///driver's head controls
+    /// //head coral motor
+    m_driverController.rightBumper().onTrue(head.setHeadSpeed(.5));
+    m_driverController.rightBumper().onFalse(head.setHeadSpeed(0));
+
   } 
 
   private void configureAutos(){
-    /*
-    SmartDashboard.putData(startingPositionSelector);
-    startingPositionSelector.setDefaultOption("blueMiddle", blueMiddle);
-    startingPositionSelector.addOption("blueLeft",blueLeft);
-    startingPositionSelector.addOption("blueMiddle", blueMiddle);
-    startingPositionSelector.addOption("blueRight", blueRight);
-    */
     
+    m_autoChooser.setDefaultOption("Left", "Left");
+    m_autoChooser.addOption("Middle", "Middle");
+    SmartDashboard.putData("Auto Choices", m_autoChooser);
   }
 
 
@@ -198,48 +205,46 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     
-    return 
-    AutoBuilder.buildAuto("Test Auto")
-    .alongWith(elevator.setLevel(4))
-    
-    .andThen(head.setHeadSpeed(.7))
-    .andThen(new WaitCommand(0.2))
-    .andThen(head.setHeadSpeed(0))
-    
-    .andThen(elevator.setLevel(1))
-    .andThen(AutoBuilder.buildAuto("Human Left"))
-    
-    .andThen(head.setHeadSpeed(0.2))
-    .andThen(new WaitCommand(1.5))
-    .andThen(head.setHeadSpeed(0))
-    
-    .andThen(AutoBuilder.buildAuto("Second Score"))
 
-    .andThen(head.setHeadSpeed(.2))
-    
-    ;
 
-    /*
-    Pose2d startPosition = new Pose2d(
-      new Translation2d(0,0),
-      new Rotation2d(10)
-    );
 
-    Pose2d destination1 = new Pose2d(
-      new Translation2d(0.3,0),
-      new Rotation2d(10)
-    );
-    
-    PathConstraints constraints = new PathConstraints(1,0.5,0.1,0.1,0.1);
+    if(m_autoChooser.getSelected() == "Left"){
+      return 
+      AutoBuilder.buildAuto("Test Auto")
+      .alongWith(elevator.setLevel(4))
+      .alongWith(head.setHeadSpeed(0))
+      
+      .andThen(head.setHeadSpeed(.5))
+      .andThen(new WaitCommand(0.25))
+      .andThen(head.setHeadSpeed(0))
+      
+      .andThen(elevator.setLevel(1))
+      .andThen(AutoBuilder.buildAuto("Human Left"))
+      
+      
+      .andThen(AutoBuilder.buildAuto("Second Score"))
+  
+      .andThen(head.setHeadSpeed(.2))
+      
+      ;
+    }
 
-    return AutoBuilder.resetOdom(startPosition)
-    .andThen(AutoBuilder.pathfindToPose(destination1,constraints))
-    .andThen(new CmdSetElevatorHeight(giraffeNeckMotor, 3, 0.3))
-    .andThen(new CmdSpinMotorPositive(1, coralFeeder))
-    ;
+
+    if(m_autoChooser.getSelected() == "Center"){
+      return
+      AutoBuilder.buildAuto("center1auto")
+      .alongWith(elevator.setLevel(4))
+
+      .andThen(head.setHeadSpeed(.5))
+      .andThen(new WaitCommand(0.25))
+      .andThen(head.setHeadSpeed(0));
+    }
+
+
+
+
+   
+    return null;
     
-    
-    //return autoSelector.getSelected();
-    */
   }
 }
