@@ -192,6 +192,7 @@ public class RobotContainer {
     
     m_autoChooser.setDefaultOption("Left", "Left");
     m_autoChooser.addOption("Middle", "Middle");
+    m_autoChooser.addOption("MiddleRight", "MiddleRight");
     SmartDashboard.putData("Auto Choices", m_autoChooser);
   }
 
@@ -205,8 +206,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     
-
-
+    
 
     if(m_autoChooser.getSelected() == "Left"){
       return 
@@ -215,32 +215,56 @@ public class RobotContainer {
       .alongWith(head.setHeadSpeed(0))
       
       .andThen(head.setHeadSpeed(.5))
-      .andThen(new WaitCommand(0.25))
+      .andThen(new WaitCommand(1))
       .andThen(head.setHeadSpeed(0))
       
       .andThen(elevator.setLevel(1))
       .andThen(AutoBuilder.buildAuto("Human Left"))
       
+      .andThen(new WaitCommand(1))
       
       .andThen(AutoBuilder.buildAuto("Second Score"))
   
-      .andThen(head.setHeadSpeed(.2))
+      //.andThen(head.setHeadSpeed(.2))
       
       ;
     }
 
 
-    if(m_autoChooser.getSelected() == "Center"){
+    if(m_autoChooser.getSelected() == "Middle"){
       return
       AutoBuilder.buildAuto("center1auto")
       .alongWith(elevator.setLevel(4))
 
-      .andThen(head.setHeadSpeed(.5))
-      .andThen(new WaitCommand(0.25))
-      .andThen(head.setHeadSpeed(0));
+      .andThen(head.setHeadSpeed(.7))
+      .andThen(new WaitCommand(0.5))
+      .andThen(head.setHeadSpeed(0))
+
+      .andThen(elevator.setLevel(1))
+
+
+      ;
     }
 
 
+    //middllemove
+    if(m_autoChooser.getSelected() == "MiddleRight"){
+      return
+      AutoBuilder.buildAuto("center1auto")
+      .alongWith(elevator.setLevel(4))
+
+      .andThen(head.setHeadSpeed(.7))
+      .andThen(new WaitCommand(0.5))
+      .andThen(head.setHeadSpeed(0))
+
+      .andThen(elevator.setLevel(1))
+
+      .andThen(new WaitCommand(0.25))
+      .andThen(AutoBuilder.buildAuto("center2auto"))
+
+      .andThen(new WaitCommand(2))
+      .andThen(AutoBuilder.buildAuto("center3auto"));
+    }
 
 
    
